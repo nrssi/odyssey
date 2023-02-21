@@ -1,21 +1,60 @@
+"""
+This module contains all the definitions and declarations required for a fully functional Blockchain implementation
+this will also include serialization and deserialization methods for Blockchain to store and load data files.
+"""
 import hashlib
 import datetime
+import os
+from json import load as load_json, dumps as dump_json
 from typing import Dict
 
+class BlockInsertionError(Exception):
+    """
+    This error is raised when there's a problem inserting a block into the blockchain
+    mostly when the data inside is corrupt
+    """
+    def __init__(self, message : str | None) -> None:
+        self.msg = message
+
+BLOCKCHAIN_STORE = "store.json"
+"""This variable contains the filename used when storing the blockchain to storage, same will be used while reinitializing"""
 class Block:
-    '''
-    This class is the basic representation of what each node in our blockchain is going to be 
-    it's going to contain every piece of information required for operation 
-    '''
-    def __init__(self, index:int, data:Dict, previous_hash:str) -> None:
+    """
+    ### Class Block
+    This class is the representation of a node in blockchain 
+    it contains, 
+    - index : specifies the place of the block in blockchain
+    - timestamp : specifies the time period at w3hich block is created
+    - data : contains actual data (i,e polling info in current context)
+    - previous_hash : contains a hash computed from the previous block
+    - hash : contains hash value for the current block
+    """
+    def __init__(self, index:int, data:Dict[str, str], previous_hash:str) -> None:
+        """
+        Params:
+           - index : represents the position of block in blockchain
+           - data : A dictionary that contains voter ID as key and candidate ID as value
+           - previous_hash : hash value of previous block in blockchain (for maintaining integritty in data)
+           ---
+        Returns: **None**
+        """
         self.index = index
-        self.timestamp = datetime.datetime.now()
+        self.timestamp = f"{datetime.datetime.now()}"
         self.data = data
         self.previous_hash = previous_hash
         self.hash = self.calculate_hash()
 
-    # returns a hash that will be used for error checking
     def calculate_hash(self) -> str:
+        """
+        Params :
+           - None  
+           ----
+        Returns : **string representing a hash of the entire block**  
+
+        ---
+        This function is used to calculate a hash value. Hash value is generated using all the data in the block, this hash contains the hash of previous node's hash too.
+        **Hash256** algorightm is used to generate this hash value.
+        """
         sha = hashlib.sha256()
         sha.update(str(self.index).encode('utf-8') +
                    str(self.timestamp).encode('utf-8') +
@@ -23,36 +62,43 @@ class Block:
                    str(self.previous_hash).encode('utf-8'))
         return sha.hexdigest()
 
-    # use this for DEBUG only 
-    def print_block(self) -> None:
-        print(self.__dict__)
+    def __repr__(self) -> str:
+        return f"{self.__dict__}" 
 
+    def dict(self) -> Dict:
+        """This function returns a dictionary containing all the values in block, this function is used as helper in serializing block to json format"""
+        return self.__dict__
 
-class Blockchain:
-    '''
+class BlockChain:
+    """
+    ### Class BlockChain
     This class is going to be the main blockchain implementation 
     it's going to contain a list of nodes(Blocks in current context) and some additional 
     error correction data
-    '''
+    """
     def __init__(self) -> None:
-        self.chain = [self.create_initial_block()]
+        if os.path.exists(BLOCKCHAIN_STORE):
+            self.chain = load_json(open(BLOCKCHAIN_STORE))
+        else:
+            with open(BLOCKCHAIN_STORE, 'w'):
+                pass
+        self.chain = [Block(0, {"ID":"Intial Block"}, "")]
 
-    # creates initial block of the blockchain with default parameters 
-    # TODO : fix this to create a chain based on the given arguments
-    def create_initial_block(self) -> Block:
-        return Block(0, {"message" : "Genesis Block"}, "0")
-    
+    def get_length(self) -> int:
+        return len(self.chain)
     # returns the last block of the chain (which is probably the most recent insertion)
     def get_latest_block(self) -> Block:
         return self.chain[-1]
     
     # adds block to the blockchain 
-    # TODO : perform error checking to make sure blockchain is not in altered state
-    # fail the insertion of it's not valid 
-    def add_block(self, new_block) -> None:
-        new_block.previous_hash = self.get_latest_block().hash
-        new_block.hash = new_block.calculate_hash()
-        self.chain.append(new_block)
+    def add_block(self, new_block : Block) -> bool:
+        if self.is_valid() : 
+            new_block.previous_hash = self.get_latest_block().hash
+            new_block.hash = new_block.calculate_hash()
+            self.chain.append(new_block)
+            return True
+        else:
+            return False
 
    # returns true or false based on the state of blockchain
    # True if unaltered and not corrupted
@@ -66,7 +112,10 @@ class Blockchain:
             if current_block.previous_hash != previous_block.hash:
                 return False
         return True
-
+    def serialize(self) -> None:
+        json_data = dump_json(self, default=lambda o: o.__dict__, indent=4)
+        with open(BLOCKCHAIN_STORE, 'w') as f:
+            f.write(json_data)
     # use this for DEBUG only
-    def print_chain(self) -> None:
-        print(self.__dict__)
+    def __repr__(self) -> str:
+        return f"{self.__dict__}"
