@@ -1,0 +1,6 @@
+colorama==0.4.6
+Jinja2==3.1.2
+logger==1.4
+MarkupSafe==2.1.2
+pdoc==13.0.0
+Pygments==2.14.0

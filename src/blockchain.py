@@ -4,20 +4,26 @@ this will also include serialization and deserialization methods for Blockchain 
 """
 import hashlib
 import datetime
+from logger import Logger
 import os
 from json import load as load_json, dumps as dump_json
 from typing import Dict
+
 
 class BlockInsertionError(Exception):
     """
     This error is raised when there's a problem inserting a block into the blockchain
     mostly when the data inside is corrupt
     """
-    def __init__(self, message : str | None) -> None:
+
+    def __init__(self, message: str | None) -> None:
         self.msg = message
+
 
 BLOCKCHAIN_STORE = "store.json"
 """This variable contains the filename used when storing the blockchain to storage, same will be used while reinitializing"""
+
+
 class Block:
     """
     ### Class Block
@@ -29,7 +35,8 @@ class Block:
     - previous_hash : contains a hash computed from the previous block
     - hash : contains hash value for the current block
     """
-    def __init__(self, index:int, data:Dict[str, str], previous_hash:str) -> None:
+
+    def __init__(self, index: int, data: Dict[str, str], previous_hash: str) -> None:
         """
         Params:
            - index : represents the position of block in blockchain
@@ -63,11 +70,12 @@ class Block:
         return sha.hexdigest()
 
     def __repr__(self) -> str:
-        return f"{self.__dict__}" 
+        return f"{self.__dict__}"
 
     def dict(self) -> Dict:
         """This function returns a dictionary containing all the values in block, this function is used as helper in serializing block to json format"""
         return self.__dict__
+
 
 class BlockChain:
     """
@@ -76,26 +84,31 @@ class BlockChain:
     it's going to contain a list of nodes(Blocks in current context) and some additional 
     error correction data
     """
+
     def __init__(self) -> None:
         if os.path.exists(BLOCKCHAIN_STORE):
             self.chain = load_json(open(BLOCKCHAIN_STORE))
         else:
             with open(BLOCKCHAIN_STORE, 'w'):
                 pass
-        self.chain = [Block(0, {"ID":"Intial Block"}, "")]
+        self.chain = [Block(0, {"ID": "Intial Block"}, "")]
+        self.logger = Logger()
 
     def get_length(self) -> int:
         return len(self.chain)
     # returns the last block of the chain (which is probably the most recent insertion)
+
     def get_latest_block(self) -> Block:
         return self.chain[-1]
-    
-    # adds block to the blockchain 
-    def add_block(self, new_block : Block) -> bool:
-        if self.is_valid() : 
+
+    # adds block to the blockchain
+    def add_block(self, new_block: Block) -> bool:
+        if self.is_valid():
             new_block.previous_hash = self.get_latest_block().hash
             new_block.hash = new_block.calculate_hash()
             self.chain.append(new_block)
+            self.logger.info(
+                f"Inserted a new block with id={new_block.index} with hash={new_block.hash}")
             return True
         else:
             return False
@@ -112,10 +125,12 @@ class BlockChain:
             if current_block.previous_hash != previous_block.hash:
                 return False
         return True
-    def serialize(self) -> None:
+
+    def save_to_disk(self) -> None:
         json_data = dump_json(self, default=lambda o: o.__dict__, indent=4)
         with open(BLOCKCHAIN_STORE, 'w') as f:
             f.write(json_data)
     # use this for DEBUG only
+
     def __repr__(self) -> str:
         return f"{self.__dict__}"
