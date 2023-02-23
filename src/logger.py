@@ -27,11 +27,12 @@ class LogLevel(Enum):
 
 class Logger:
     """
-    A Logger object is used to log events to either a file or to STDOUT 
+    A Logger object is used to log events to either a file or to STDOUT
     it provides all the levels of logging available in LogLevel enum class
     Basic usage:
     ```python
-    logger = Logger("<filename>") # leave file name empty if you want to write to STDOUT
+    # leave file name empty if you want to write to STDOUT
+    logger = Logger("<filename>")
     logger.info("some information to log inforamtional events")
     logger.warn("some information to log warning events")
     logger.error("some information to log error events")
@@ -40,6 +41,7 @@ class Logger:
     ```
     """
 
+    # TODO: explain the usage of self.file here
     def __init__(self, file: str | None = None) -> None:
         if file == None:
             self.file = "stdout"
@@ -93,6 +95,9 @@ class Logger:
                 f.write(f"DEBUG : [{date}] : {args}\n")
 
     def log(self, log_type: LogLevel, *args) -> None:
+        """
+        TODO: write documentation
+        """
         args = "".join(str(a) for a in args)
         if log_type == LogLevel.INFO:
             self.info(args)
