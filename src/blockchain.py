@@ -2,9 +2,9 @@
 This module contains all the definitions and declarations required for a fully functional Blockchain implementation
 this will also include serialization and deserialization methods for Blockchain to store and load data files.
 """
+from .logger import Logger
 import hashlib
 import datetime
-from logger import Logger
 import os
 from json import load as load_json, dumps as dump_json
 from typing import Dict
@@ -130,7 +130,7 @@ class BlockChain:
         json_data = dump_json(self, default=lambda o: o.__dict__, indent=4)
         with open(BLOCKCHAIN_STORE, 'w') as f:
             f.write(json_data)
-    # use this for DEBUG only
 
+    # use this for DEBUG only
     def __repr__(self) -> str:
         return f"{self.__dict__}"

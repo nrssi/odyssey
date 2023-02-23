@@ -1,4 +1,5 @@
-from blockchain import BlockChain, Block
+from .blockchain import BlockChain, Block
+
 if __name__ == "__main__":
     bc = BlockChain()
     bc.add_block(Block(bc.get_length(), {}, ""))
