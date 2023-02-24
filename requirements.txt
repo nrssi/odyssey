@@ -1,4 +1,7 @@
+colorama==0.4.6
 Jinja2==3.1.2
+Mako==1.2.4
+Markdown==3.4.1
 MarkupSafe==2.1.2
-pdoc==13.0.0
+pdoc3==0.10.0
 Pygments==2.14.0
