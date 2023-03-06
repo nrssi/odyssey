@@ -109,3 +109,6 @@ class Logger:
             self.critical(args)
         elif log_type == LogLevel.DEBUG:
             self.debug(args)
+
+
+logger = Logger()

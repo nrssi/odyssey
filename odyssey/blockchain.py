@@ -6,7 +6,7 @@ from .logger import Logger
 import hashlib
 import datetime
 import os
-from json import load as load_json, dumps as dump_json
+import pickle
 from typing import Dict
 
 
@@ -87,7 +87,10 @@ class BlockChain:
 
     def __init__(self) -> None:
         if os.path.exists(BLOCKCHAIN_STORE):
-            self.chain = load_json(open(BLOCKCHAIN_STORE))
+            with open(BLOCKCHAIN_STORE, "rb") as f:
+                self.chain = pickle.load(f)
+            if not self.is_valid():
+                raise BlockInsertionError("The storage is corrupt")
         else:
             with open(BLOCKCHAIN_STORE, 'w'):
                 pass
@@ -127,9 +130,8 @@ class BlockChain:
         return True
 
     def save_to_disk(self) -> None:
-        json_data = dump_json(self, default=lambda o: o.__dict__, indent=4)
-        with open(BLOCKCHAIN_STORE, 'w') as f:
-            f.write(json_data)
+        with open(BLOCKCHAIN_STORE, 'wb') as f:
+            pickle.dump(self.chain, f)
 
     # use this for DEBUG only
     def __repr__(self) -> str:
