@@ -5,3 +5,9 @@
 ---
 .. include:: ../README.md
 """
+# settting environment variables to make sure that assets are loaded correctly
+
+
+import os
+
+os.environ["VP_ROOT_DIR"] = os.path.abspath(os.curdir)
