@@ -2,7 +2,7 @@
 This module contains all the definitions and declarations required for a fully functional Blockchain implementation
 this will also include serialization and deserialization methods for Blockchain to store and load data files.
 """
-from .logger import Logger
+from .logger import logger
 import hashlib
 import datetime
 import os
@@ -27,8 +27,8 @@ BLOCKCHAIN_STORE = "store.json"
 class Block:
     """
     ### Class Block
-    This class is the representation of a node in blockchain 
-    it contains, 
+    This class is the representation of a node in blockchain
+    it contains,
     - index : specifies the place of the block in blockchain
     - timestamp : specifies the time period at w3hich block is created
     - data : contains actual data (i,e polling info in current context)
@@ -54,9 +54,9 @@ class Block:
     def calculate_hash(self) -> str:
         """
         Params :
-           - None  
+           - None
            ----
-        Returns : **string representing a hash of the entire block**  
+        Returns : **string representing a hash of the entire block**
 
         ---
         This function is used to calculate a hash value. Hash value is generated using all the data in the block, this hash contains the hash of previous node's hash too.
@@ -76,12 +76,15 @@ class Block:
         """This function returns a dictionary containing all the values in block, this function is used as helper in serializing block to json format"""
         return self.__dict__
 
+    def get_data(self) -> Dict:
+        return self.data
+
 
 class BlockChain:
     """
     ### Class BlockChain
-    This class is going to be the main blockchain implementation 
-    it's going to contain a list of nodes(Blocks in current context) and some additional 
+    This class is going to be the main blockchain implementation
+    it's going to contain a list of nodes(Blocks in current context) and some additional
     error correction data
     """
 
@@ -94,8 +97,7 @@ class BlockChain:
         else:
             with open(BLOCKCHAIN_STORE, 'w'):
                 pass
-        self.chain = [Block(0, {"ID": "Intial Block"}, "")]
-        self.logger = Logger()
+            self.chain = [Block(0, {"ID": "Intial Block"}, "")]
 
     def get_length(self) -> int:
         return len(self.chain)
@@ -105,20 +107,32 @@ class BlockChain:
         return self.chain[-1]
 
     # adds block to the blockchain
-    def add_block(self, new_block: Block) -> bool:
+    def add_block(self, data: Dict[str, str]) -> bool:
+        block = Block(self.get_length(), data, self.get_latest_block().hash)
         if self.is_valid():
-            new_block.previous_hash = self.get_latest_block().hash
-            new_block.hash = new_block.calculate_hash()
-            self.chain.append(new_block)
-            self.logger.info(
-                f"Inserted a new block with id={new_block.index} with hash={new_block.hash}")
+            block.previous_hash = self.get_latest_block().hash
+            block.hash = block.calculate_hash()
+            self.chain.append(block)
+            logger.info(
+                f"Inserted a new block with id={block.index} with hash={block.hash}")
             return True
         else:
             return False
 
-   # returns true or false based on the state of blockchain
-   # True if unaltered and not corrupted
-   # False if altered or corrupted
+    def get_values(self) -> Dict:
+        value_count = {}
+        for block in self.chain:
+            for _, v in block.data:
+                if v in value_count:
+                    value_count[v] += 1
+                else:
+                    value_count[v] = 0
+        return value_count
+
+    # returns true or false based on the state of blockchain
+    # True if unaltered and not corrupted
+    # False if altered or corrupted
+
     def is_valid(self) -> bool:
         for i in range(1, len(self.chain)):
             current_block = self.chain[i]

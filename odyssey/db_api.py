@@ -49,3 +49,25 @@ def register_party(name: str) -> bool:
         logger.error(f"Can't register party due to => {e}")
         return False
     return True
+
+
+def fetch_user(id: int) -> Citizens | None:
+    db = SessionLocal()
+    try:
+        user = db.query(Citizens).filter(Citizens.id == id).first()
+        return user
+    except Exception as e:
+        logger.error(
+            f"Citizen with ID {id} doesn't exist, Additional info : {e}")
+        return None
+
+
+def fetch_candidate(id: int) -> Candidate | None:
+    db = SessionLocal()
+    try:
+        user = db.query(Candidate).filter(Candidate.id == id).first()
+        return user
+    except Exception as e:
+        logger.error(
+            f"Citizen with ID {id} doesn't exist, Additional info : {e}")
+        return None
