@@ -1,3 +1,3 @@
-from .ui.application_ui import VotingApp
+from .ui.ui import MyApp
 if __name__ == "__main__":
-    VotingApp().run()
+    MyApp().run()
