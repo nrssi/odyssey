@@ -2,8 +2,8 @@
 A Blockchain based polling system using fingerprint and face recognition for authentication
 
 ## Documentation
-run `pdoc src` inside project root to access project documentation
-optionally run `pdoc src -n` to disable automatic opening of browser
+run `pdoc odyssey` inside project root to access project documentation
+optionally run `pdoc odyssey --html -o docs` to disable automatic opening of browser
 
 ## Development guidelines 
 + use docustrings to document all aspects like classes, functions and global variables(only if necessary).

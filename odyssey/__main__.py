@@ -1,3 +1,3 @@
-from .ui.ui import MyApp
+from .ui.ui import BiometricVoting
 if __name__ == "__main__":
-    MyApp().run()
+    BiometricVoting().run()

@@ -1,35 +1,33 @@
+from kivymd.app import MDApp
 from kivymd.uix import Screen
 from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.textfield import MDTextField
 from kivy.uix.image import Image
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.gridlayout import MDGridLayout
-from kivy.uix.camera import Camera
 import os
+import io
+
+from ..db_models import Citizens
+from ..db_api import fetch_user
 
 
-class RegisterScreen(Screen):
+class DetailScreen(Screen):
     def __init__(self, **kw):
         super().__init__(**kw)
+        data = MDApp.get_running_app().data
+        voter_details: Citizens = None
         layout = MDGridLayout(cols=2)
         layout.spacing = 20
         layout.padding = [10, 0, 10, 0]
         # self.add_widget(layout)
         biom_layout = MDBoxLayout(orientation="vertical", pos_hint={
                                   "center_x": 1, "center_y": 1}, spacing=10, padding=[10, 10, 10, 10])
-        details_layout = MDBoxLayout(
-            orientation="vertical", spacing=10, padding=[0, 0, 20, 0])
-        self.web_camera = Camera()
+        details_layout = MDBoxLayout(orientation="vertical", spacing=10)
+        self.image = Image(source=io.BytesIO(voter_details.face_features))
         fingerprint_image = Image(
             source="/home/shashank/Pictures/wallpapers/nixos.png")
-        self.click_button = MDRectangleFlatButton(text="Capture", pos_hint={
-            "center_x": 0.5, "center_y": 0.5})
-        self.read_button = MDRectangleFlatButton(text="Read", pos_hint={
-            "center_x": 0.5, "center_y": 0.5})
-        biom_layout.add_widget(self.web_camera)
-        biom_layout.add_widget(self.click_button)
         biom_layout.add_widget(fingerprint_image)
-        biom_layout.add_widget(self.read_button)
 
         register_gif_path = os.environ["VP_ROOT_DIR"] + \
             "/assets/UI/register.gif"

@@ -1,7 +1,8 @@
 import os
+from kivy.uix.image import Image
+from kivymd.app import MDApp
 from kivymd.uix.screen import Screen
 from kivymd.uix.card import MDCard
-from kivymd.uix.fitimage import FitImage
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.button import MDRectangleFlatButton
 from kivymd.uix.gridlayout import MDGridLayout
@@ -15,11 +16,12 @@ class LoginScreen(Screen):
                       pos_hint={"center_x": 0.5, "center_y": 0.5})
         card.orientation = "vertical"
         card.padding = [25, 25, 25, 40]
-        title_image_path = os.environ["VP_ROOT_DIR"] + \
-            "/assets/UI/project_title.png"
-        title_image = FitImage(source=title_image_path)
-        uuid_input = MDTextField(
+        title_gif_path = os.environ["VP_ROOT_DIR"] + \
+            "/assets/UI/voting.gif"
+        title_gif = Image(source=title_gif_path, anim_delay=0.04)
+        self.uuid_input = MDTextField(
             hint_text="UUID",
+            mode="rectangle",
             helper_text_mode="on_focus",
             size_hint=(1, None),
             height=50,
@@ -29,14 +31,14 @@ class LoginScreen(Screen):
         new_user_label = MDRectangleFlatButton(
             text="New User?",
             size_hint=(0.5, None),
-            height=50
+            height=50,
+            on_press=self.new_user_callback
         )
 
         proceed_button = MDRectangleFlatButton(
             text="Proceed",
             size_hint=(0.5, None),
             height=50,
-            on_press=self.new_user_callback
         )
 
         button_box = MDGridLayout(
@@ -49,11 +51,16 @@ class LoginScreen(Screen):
 
         button_box.add_widget(new_user_label)
         button_box.add_widget(proceed_button)
-        card.add_widget(title_image)
-        card.add_widget(uuid_input)
+        card.add_widget(title_gif)
+        card.add_widget(self.uuid_input)
         card.add_widget(button_box)
 
         self.add_widget(card)
 
     def new_user_callback(self, _):
         self.manager.current = "register"
+
+    def proceed_button_callback(self, _):
+        data = MDApp.get_running_app().data
+        data["uuid"] = self.uuid_input.text
+        self.manager.current = "details"
