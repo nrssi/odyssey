@@ -10,18 +10,21 @@ class Citizens(Base):
     __tablename__ = 'citizens'
 
     name = Column(Text, nullable=False)
-    address = Column(Text, nullable=False)
-    fingerprint_features = Column(LargeBinary, nullable=False)
-    face_features = Column(LargeBinary, nullable=False)
     uuid = Column(Integer, primary_key=True)
+    address = Column(Text)
     contact_ph = Column(Integer)
     email = Column(Text)
+    fingerprint = Column(LargeBinary)
+    face = Column(LargeBinary)
+    father_name = Column(Text)
+    mother_name = Column(Text)
+    dob = Column(Text)
 
     candidate = relationship('Candidate', back_populates='citizens')
 
 
-class Politicalparties(Base):
-    __tablename__ = 'politicalparties'
+class PoliticalParties(Base):
+    __tablename__ = 'political_parties'
 
     party_id = Column(Integer, primary_key=True)
     name = Column(Text, nullable=False)
@@ -40,9 +43,9 @@ class Candidate(Base):
     __tablename__ = 'candidate'
 
     candidate_id = Column(Integer, primary_key=True)
-    uuid = Column(ForeignKey('citizens.uuid', ondelete='CASCADE'), nullable=False)
-    party_id = Column(ForeignKey('politicalparties.party_id', ondelete='CASCADE'))
+    uuid = Column(ForeignKey('citizens.uuid'))
+    party_id = Column(ForeignKey('political_parties.party_id'))
     name = Column(Text)
 
-    party = relationship('Politicalparties', back_populates='candidate')
+    party = relationship('PoliticalParties', back_populates='candidate')
     citizens = relationship('Citizens', back_populates='candidate')

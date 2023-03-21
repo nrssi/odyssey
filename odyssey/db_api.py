@@ -1,20 +1,19 @@
-from .db_models import *
+from .db_models import Candidate, Citizens, PoliticalParties
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from .logger import logger
 
-DB_URL = "sqlite:///./uuid_details.db"
+DB_URL = "sqlite:///./information.db"
 engine = create_engine(DB_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-def register_user(name: str, address: str, contact_ph: int, email: str, fingerprint_features: bytes, face_features: bytes) -> bool:
+def register_user(citizen: Citizens) -> bool:
     db = SessionLocal()
-    user = Citizens(name=name, address=address, contact_ph=contact_ph, email=email,
-                    fingerprint_features=fingerprint_features, face_features=face_features)
     try:
-        db.add(user)
+        db.add(citizen)
         db.commit()
+        logger.info(f"{citizen.__dict__} inserted into the database")
     except Exception as e:
         logger.error(f"Can't register user due to => {e}")
         return False
@@ -41,7 +40,7 @@ def register_candidate(uuid: int, party_id: int) -> bool:
 
 def register_party(name: str) -> bool:
     db = SessionLocal()
-    party = Politicalparties(name=name)
+    party = PoliticalParties(name=name)
     try:
         db.add(party)
         db.commit()
@@ -54,7 +53,7 @@ def register_party(name: str) -> bool:
 def fetch_user(id: int) -> Citizens | None:
     db = SessionLocal()
     try:
-        user = db.query(Citizens).filter(Citizens.id == id).first()
+        user = db.query(Citizens).filter(Citizens.uuid == id).first()
         return user
     except Exception as e:
         logger.error(

@@ -131,4 +131,3 @@ dmypy.json
 # custom 
 store.json
 *.bkp
-*.db

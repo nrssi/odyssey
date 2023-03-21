@@ -32,13 +32,14 @@ class LoginScreen(Screen):
             text="New User?",
             size_hint=(0.5, None),
             height=50,
-            on_press=self.new_user_callback
+            on_release=self.new_user_callback
         )
 
         proceed_button = MDRectangleFlatButton(
             text="Proceed",
             size_hint=(0.5, None),
             height=50,
+            on_release=self.proceed_button_callback
         )
 
         button_box = MDGridLayout(

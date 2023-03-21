@@ -3,6 +3,7 @@ from kivy.uix.screenmanager import ScreenManager
 
 from .voterdetails import DetailScreen
 
+
 from .login import LoginScreen
 from .register import RegisterScreen
 

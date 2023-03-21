@@ -5,6 +5,8 @@ A Blockchain based polling system using fingerprint and face recognition for aut
 run `pdoc odyssey` inside project root to access project documentation
 optionally run `pdoc odyssey --html -o docs` to disable automatic opening of browser
 
+
+
 ## Development guidelines 
 + use docustrings to document all aspects like classes, functions and global variables(only if necessary).
 + keep abstractions as minimal as possible and try to use autopep8 for formattting.
@@ -20,3 +22,4 @@ optionally run `pdoc odyssey --html -o docs` to disable automatic opening of bro
 + [ ] handle database for storing biometric data
 + [ ] implementing an user interface for the given system 
 
+the pysgfplib is a property of SecuGen company and only should be used under their name only
