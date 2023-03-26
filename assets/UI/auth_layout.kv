@@ -1,0 +1,11 @@
+<AuthScreen>:
+  MDBoxLayout:
+    orientation:"horizontal"
+    FingerPrint:
+      id:fp
+    CameraFeed:
+      id:cam
+    BoxLayout:
+      MDRaisedButton:
+        text:"Authenticate"
+        on_release:root.face_authenticate()

@@ -1,31 +1,54 @@
-# import io
 # import cv2
-# import face_recognition
 # from odyssey import db_api
-# # from odyssey.auth import recognize_face
-# from odyssey.db_models import Citizens
+# from odyssey.auth import recognize_face
+# from odyssey.db_api import fetch_user
 # db = db_api.SessionLocal()
 # image_data = None
-# with open("./assets/UI/project_title.png", "rb") as f:
+# with open("/home/shashank/Downloads/profile.jpeg", "rb") as f:
 #     image_data = f.read()
-#
-# user = Citizens(name="messi", address="messi", contact_ph=234,
-#                 email="messi@goat", fingerprint=b"", face=image_data)
-# db.add(user)
-# db.commit()
-
-# messi = db.query(Citizens).filter(Citizens.uuid == 10).first().face_features
-# messi = face_recognition.load_image_file(io.BytesIO(messi))
-# encoding = face_recognition.face_encodings(messi)[0]
-# messi1 = face_recognition.load_image_file("./assets/Messi.jpg")
-# encodings1 = face_recognition.face_encodings(messi1)[0]
-# print(encoding-encodings1)
-# result = recognize_face(image_data, messi)
-# print(result)
-
-# im = cv2.imread(io.BytesIO(image_data))
+# user = fetch_user(3).face
+# cap = cv2.VideoCapture(0)
+# _, frame = cap.read()
+# _, frame = cv2.imencode(".jpg", frame)
+# print(recognize_face(user, frame.tobytes()))
+import cv2
+import sqlite3
+import numpy as np
+from kivy.app import App
+from kivy.graphics.texture import Texture
+from kivy.uix.image import Image as CoreImage
+from kivy.uix.boxlayout import BoxLayout
+from odyssey.db_api import fetch_user
 
 
-# fetcher user test
+class MyApp(App):
+    def build(self):
+        # Connect to the SQLite database
+        # conn = sqlite3.connect('information.db')
+        # cursor = conn.cursor()
+        layout = BoxLayout()
+        # # Retrieve the JPEG image data from the database as a byte string
+        # cursor.execute("SELECT face FROM citizens WHERE uuid = ?", (3,))
+        # blob_data = cursor.fetchone()[0]
+        # Decode the byte string into a numpy array using cv2.imdecode()
+        user = fetch_user(3)
+        blob_data = user.face
+        bgr_img = cv2.imdecode(np.frombuffer(
+            blob_data, np.uint8), cv2.IMREAD_COLOR)
+        # Convert the numpy array from BGR to RGB format
+        rgb_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2RGB)
+        rgb_img = cv2.flip(rgb_img, 0)
+        # Create a Kivy texture from the RGB numpy array
+        texture = Texture.create(
+            size=(rgb_img.shape[1], rgb_img.shape[0]), colorfmt='rgb')
+        texture.blit_buffer(rgb_img.tobytes(),
+                            colorfmt='rgb', bufferfmt='ubyte')
+        # Create a Kivy image widget and set its texture
+        kivy_image = CoreImage()
+        kivy_image.texture = texture
+        layout.add_widget(kivy_image)
+        return layout
 
-# print(db_api.fetch_user(6))
+
+if __name__ == '__main__':
+    MyApp().run()
