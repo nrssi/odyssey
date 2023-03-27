@@ -1,11 +1,29 @@
 <AuthScreen>:
   MDBoxLayout:
     orientation:"horizontal"
-    FingerPrint:
-      id:fp
-    CameraFeed:
-      id:cam
-    BoxLayout:
+    spacing:20
+    padding:[10, 10, 10, 10]
+    MDCard:
+      id:face_card
+      style:"elevated"
+      size_hint:(1, 1)
+      orientation:"vertical"
+      spacing:10
+      CameraFeed:
+        id:cam
       MDRaisedButton:
+        pos_hint:{"center_x":0.5, "center_y":0.5}
         text:"Authenticate"
         on_release:root.face_authenticate()
+    MDCard:
+      id:finger_card
+      style:"elevated"
+      size_hint:(1, 1)
+      orientation:"vertical"
+      spacing:10
+      FingerPrint:
+        id:fp
+      MDRaisedButton:
+        pos_hint:{"center_x":0.5, "center_y":0.5}
+        text:"Authenticate"
+        on_release:root.finger_authenticate()

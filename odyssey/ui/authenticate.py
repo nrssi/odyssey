@@ -2,6 +2,7 @@ from kivy.uix.image import Image
 from kivymd.uix.screen import Screen
 import numpy as np
 import cv2
+import os
 from kivymd.app import MDApp
 from kivy.clock import Clock
 from kivy.graphics.texture import Texture
@@ -9,7 +10,7 @@ from ..fingerprint_bindings.pysgfplib import PYSGFPLib
 from ..fingerprint_bindings.sgfdxdevicename import SGFDxDeviceName
 from ..logger import logger
 from ctypes import c_int, byref, c_char
-from ..auth import recognize_face
+from ..auth import recognize_face, recognize_finger
 from ..db_api import fetch_user
 
 
@@ -110,13 +111,47 @@ class FingerPrint(Image):
 
 
 class AuthScreen(Screen):
+    is_faceauth: bool
+    is_fingerauth: bool
+
     def on_enter(self):
         self.ids.fp.start()
         self.ids.cam.start()
+        self.is_faceauth = False
+        self.is_fingerauth = False
 
     def face_authenticate(self):
         self.data = MDApp.get_running_app().data
         user = fetch_user(int(self.data["uuid"]))
         _, face_frame = cv2.imencode(".jpg", self.ids.cam.get_frame())
-        result = recognize_face(face_frame, user.face)
-        print(result)
+        is_match = recognize_face(face_frame, user.face)
+        if is_match:
+            self.is_faceauth = True
+            self.ids.cam.stop()
+            self.ids.cam.source = f"{os.environ['VP_ASSETS_DIR']}/UI/tick.gif"
+            self.ids.cam.anim_delay = 0.02
+            self.ids.cam.anim_loop = 1
+        else:
+            self.ids.face_card.md_bg_color = "#f00000"
+        logger.debug("Result of face match is : ", is_match)
+        if self.is_fingerauth and self.is_faceauth:
+            self.manager.current = "login"
+
+    def finger_authenticate(self):
+        self.data = MDApp.get_running_app().data
+        user = fetch_user(int(self.data["uuid"]))
+        data_array = np.frombuffer(user.fingerprint, np.uint8)
+        decoded_data = cv2.imdecode(data_array, cv2.IMREAD_GRAYSCALE)
+        is_match = recognize_finger(
+            self.ids.fp.get_frame(), decoded_data)
+        if is_match:
+            self.is_fingerauth = True
+            self.ids.fp.stop()
+            self.ids.fp.source = f"{os.environ['VP_ASSETS_DIR']}/UI/tick.gif"
+            self.ids.fp.anim_delay = 0.02
+            self.ids.fp.anim_loop = 1
+        else:
+            self.ids.finger_card.md_bg_color = "#f00000"
+        logger.debug("Result of finger match is : ", is_match)
+        if self.is_fingerauth and self.is_faceauth:
+            self.manager.current = "login"

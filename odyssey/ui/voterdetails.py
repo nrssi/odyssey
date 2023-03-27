@@ -31,12 +31,18 @@ class DetailScreen(Screen):
         self.ids.father_name.text = user.father_name
         self.ids.uuid.text = str(user.uuid)
         self.ids.dob.text = str(user.dob)
+        self.ids.face_data.texture = self.get_blob_texture(user.face, True)
+        self.ids.finger_data.texture = self.get_blob_texture(
+            user.fingerprint, False)
+
+    def get_blob_texture(self, blob, flip):
         bgr_img = cv2.imdecode(np.frombuffer(
-            user.face, np.uint8), cv2.IMREAD_COLOR)
+            blob, np.uint8), cv2.IMREAD_COLOR)
         rgb_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2RGB)
-        rgb_img = cv2.flip(rgb_img, 0)
+        if flip:
+            rgb_img = cv2.flip(rgb_img, 0)
         texture = Texture.create(
             size=(rgb_img.shape[1], rgb_img.shape[0]), colorfmt='rgb')
         texture.blit_buffer(rgb_img.tobytes(),
                             colorfmt='rgb', bufferfmt='ubyte')
-        self.ids.face_data.texture = texture
+        return texture

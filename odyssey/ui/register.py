@@ -125,7 +125,7 @@ class RegisterScreen(Screen):
         mother_name = self.ids.mother_name.text
         contact_ph = self.ids.contact_ph.text
         _, face_blob = cv2.imencode(".jpg", self.face_frame)
-        finger_blob = self.finger_frame.tobytes()
+        _, finger_blob = cv2.imencode(".tif", self.finger_frame)
         data = {"name": name, "address": address,
                 "father_name": father_name, "dob": dob,
                 "mother_name": mother_name, "contact_ph": contact_ph,
