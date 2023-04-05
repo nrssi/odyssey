@@ -2,7 +2,6 @@ from kivymd.uix import Screen
 from kivy.uix.image import Image
 from ..db_api import register_user
 from ..db_models import Citizens
-import io
 import numpy as np
 import cv2
 from kivy.clock import Clock
@@ -112,6 +111,10 @@ class RegisterScreen(Screen):
         _ = args  # Assigning this to remove the warnings
         self.ids.web_camera.stop()
         self.ids.fingerprint_image.stop()
+        self.ids.web_camera.is_captured = False
+        self.ids.fingerprint_image.is_captured = False
+        self.ids.capture_button.text = "Capture"
+        self.ids.read_button.text = "Capture"
 
     def back_button_callback(self):
         self.manager.current = "login"
@@ -123,15 +126,20 @@ class RegisterScreen(Screen):
         dob = self.ids.dob.text
         email = self.ids.email.text
         mother_name = self.ids.mother_name.text
+        aadhar_number = self.ids.aadhar_number.text
         contact_ph = self.ids.contact_ph.text
         _, face_blob = cv2.imencode(".jpg", self.face_frame)
         _, finger_blob = cv2.imencode(".tif", self.finger_frame)
         data = {"name": name, "address": address,
                 "father_name": father_name, "dob": dob,
                 "mother_name": mother_name, "contact_ph": contact_ph,
-                "email": email, "face": face_blob, "fingerprint": finger_blob}
+                "email": email, "face": face_blob,
+                "fingerprint": finger_blob, "aadhar_number": aadhar_number}
+        logger.debug(data)
         citizen = Citizens(**data)
         register_user(citizen)
+        self.ids.web_camera.stop()
+        self.ids.fingerprint_image.stop()
         self.manager.current = "login"
 
     def capture_callback(self):

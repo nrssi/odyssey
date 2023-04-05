@@ -38,18 +38,21 @@ class Citizens(Base):
     __tablename__ = &#39;citizens&#39;
 
     name = Column(Text, nullable=False)
-    address = Column(Text, nullable=False)
-    fingerprint_features = Column(LargeBinary, nullable=False)
-    face_features = Column(LargeBinary, nullable=False)
-    uuid = Column(Integer, primary_key=True)
+    address = Column(Text)
     contact_ph = Column(Integer)
     email = Column(Text)
+    fingerprint = Column(LargeBinary)
+    face = Column(LargeBinary)
+    father_name = Column(Text)
+    mother_name = Column(Text)
+    dob = Column(Text)
+    aadhar_number = Column(Integer, primary_key=True)
 
     candidate = relationship(&#39;Candidate&#39;, back_populates=&#39;citizens&#39;)
 
 
-class Politicalparties(Base):
-    __tablename__ = &#39;politicalparties&#39;
+class PoliticalParties(Base):
+    __tablename__ = &#39;political_parties&#39;
 
     party_id = Column(Integer, primary_key=True)
     name = Column(Text, nullable=False)
@@ -67,13 +70,12 @@ t_sqlite_sequence = Table(
 class Candidate(Base):
     __tablename__ = &#39;candidate&#39;
 
-    candidate_id = Column(Integer, primary_key=True)
-    uuid = Column(ForeignKey(&#39;citizens.uuid&#39;, ondelete=&#39;CASCADE&#39;), nullable=False)
-    party_id = Column(ForeignKey(&#39;politicalparties.party_id&#39;, ondelete=&#39;CASCADE&#39;))
-    name = Column(Text)
+    id = Column(Integer, primary_key=True)
+    aadhar_number = Column(ForeignKey(&#39;citizens.aadhar_number&#39;))
+    party_id = Column(ForeignKey(&#39;political_parties.party_id&#39;))
 
-    party = relationship(&#39;Politicalparties&#39;, back_populates=&#39;candidate&#39;)
-    citizens = relationship(&#39;Citizens&#39;, back_populates=&#39;candidate&#39;)</code></pre>
+    citizens = relationship(&#39;Citizens&#39;, back_populates=&#39;candidate&#39;)
+    party = relationship(&#39;PoliticalParties&#39;, back_populates=&#39;candidate&#39;)</code></pre>
 </details>
 </section>
 <section>
@@ -106,13 +108,12 @@ for example, any mapped columns or relationships.</p></div>
 <pre><code class="python">class Candidate(Base):
     __tablename__ = &#39;candidate&#39;
 
-    candidate_id = Column(Integer, primary_key=True)
-    uuid = Column(ForeignKey(&#39;citizens.uuid&#39;, ondelete=&#39;CASCADE&#39;), nullable=False)
-    party_id = Column(ForeignKey(&#39;politicalparties.party_id&#39;, ondelete=&#39;CASCADE&#39;))
-    name = Column(Text)
+    id = Column(Integer, primary_key=True)
+    aadhar_number = Column(ForeignKey(&#39;citizens.aadhar_number&#39;))
+    party_id = Column(ForeignKey(&#39;political_parties.party_id&#39;))
 
-    party = relationship(&#39;Politicalparties&#39;, back_populates=&#39;candidate&#39;)
-    citizens = relationship(&#39;Citizens&#39;, back_populates=&#39;candidate&#39;)</code></pre>
+    citizens = relationship(&#39;Citizens&#39;, back_populates=&#39;candidate&#39;)
+    party = relationship(&#39;PoliticalParties&#39;, back_populates=&#39;candidate&#39;)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -131,7 +132,7 @@ for example, any mapped columns or relationships.</p></div>
 </dl>
 <h3>Instance variables</h3>
 <dl>
-<dt id="odyssey.db_models.Candidate.candidate_id"><code class="name">var <span class="ident">candidate_id</span> : Union[sqlalchemy.orm.attributes.InstrumentedAttribute[~_T], ~_T]</code></dt>
+<dt id="odyssey.db_models.Candidate.aadhar_number"><code class="name">var <span class="ident">aadhar_number</span> : Union[sqlalchemy.orm.attributes.InstrumentedAttribute[~_T], ~_T]</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -179,7 +180,7 @@ for example, any mapped columns or relationships.</p></div>
         return self.impl.get(state, dict_)  # type: ignore[no-any-return]</code></pre>
 </details>
 </dd>
-<dt id="odyssey.db_models.Candidate.name"><code class="name">var <span class="ident">name</span> : Union[sqlalchemy.orm.attributes.InstrumentedAttribute[~_T], ~_T]</code></dt>
+<dt id="odyssey.db_models.Candidate.id"><code class="name">var <span class="ident">id</span> : Union[sqlalchemy.orm.attributes.InstrumentedAttribute[~_T], ~_T]</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -251,30 +252,6 @@ for example, any mapped columns or relationships.</p></div>
         return self.impl.get(state, dict_)  # type: ignore[no-any-return]</code></pre>
 </details>
 </dd>
-<dt id="odyssey.db_models.Candidate.uuid"><code class="name">var <span class="ident">uuid</span> : Union[sqlalchemy.orm.attributes.InstrumentedAttribute[~_T], ~_T]</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(
-    self, instance: Optional[object], owner: Any
-) -&gt; Union[InstrumentedAttribute[_T], _T]:
-    if instance is None:
-        return self
-
-    dict_ = instance_dict(instance)
-    if self.impl.supports_population and self.key in dict_:
-        return dict_[self.key]  # type: ignore[no-any-return]
-    else:
-        try:
-            state = instance_state(instance)
-        except AttributeError as err:
-            raise orm_exc.UnmappedInstanceError(instance) from err
-        return self.impl.get(state, dict_)  # type: ignore[no-any-return]</code></pre>
-</details>
-</dd>
 </dl>
 </dd>
 <dt id="odyssey.db_models.Citizens"><code class="flex name class">
@@ -299,12 +276,15 @@ for example, any mapped columns or relationships.</p></div>
     __tablename__ = &#39;citizens&#39;
 
     name = Column(Text, nullable=False)
-    address = Column(Text, nullable=False)
-    fingerprint_features = Column(LargeBinary, nullable=False)
-    face_features = Column(LargeBinary, nullable=False)
-    uuid = Column(Integer, primary_key=True)
+    address = Column(Text)
     contact_ph = Column(Integer)
     email = Column(Text)
+    fingerprint = Column(LargeBinary)
+    face = Column(LargeBinary)
+    father_name = Column(Text)
+    mother_name = Column(Text)
+    dob = Column(Text)
+    aadhar_number = Column(Integer, primary_key=True)
 
     candidate = relationship(&#39;Candidate&#39;, back_populates=&#39;citizens&#39;)</code></pre>
 </details>
@@ -325,6 +305,30 @@ for example, any mapped columns or relationships.</p></div>
 </dl>
 <h3>Instance variables</h3>
 <dl>
+<dt id="odyssey.db_models.Citizens.aadhar_number"><code class="name">var <span class="ident">aadhar_number</span> : Union[sqlalchemy.orm.attributes.InstrumentedAttribute[~_T], ~_T]</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(
+    self, instance: Optional[object], owner: Any
+) -&gt; Union[InstrumentedAttribute[_T], _T]:
+    if instance is None:
+        return self
+
+    dict_ = instance_dict(instance)
+    if self.impl.supports_population and self.key in dict_:
+        return dict_[self.key]  # type: ignore[no-any-return]
+    else:
+        try:
+            state = instance_state(instance)
+        except AttributeError as err:
+            raise orm_exc.UnmappedInstanceError(instance) from err
+        return self.impl.get(state, dict_)  # type: ignore[no-any-return]</code></pre>
+</details>
+</dd>
 <dt id="odyssey.db_models.Citizens.address"><code class="name">var <span class="ident">address</span> : Union[sqlalchemy.orm.attributes.InstrumentedAttribute[~_T], ~_T]</code></dt>
 <dd>
 <div class="desc"></div>
@@ -397,6 +401,30 @@ for example, any mapped columns or relationships.</p></div>
         return self.impl.get(state, dict_)  # type: ignore[no-any-return]</code></pre>
 </details>
 </dd>
+<dt id="odyssey.db_models.Citizens.dob"><code class="name">var <span class="ident">dob</span> : Union[sqlalchemy.orm.attributes.InstrumentedAttribute[~_T], ~_T]</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(
+    self, instance: Optional[object], owner: Any
+) -&gt; Union[InstrumentedAttribute[_T], _T]:
+    if instance is None:
+        return self
+
+    dict_ = instance_dict(instance)
+    if self.impl.supports_population and self.key in dict_:
+        return dict_[self.key]  # type: ignore[no-any-return]
+    else:
+        try:
+            state = instance_state(instance)
+        except AttributeError as err:
+            raise orm_exc.UnmappedInstanceError(instance) from err
+        return self.impl.get(state, dict_)  # type: ignore[no-any-return]</code></pre>
+</details>
+</dd>
 <dt id="odyssey.db_models.Citizens.email"><code class="name">var <span class="ident">email</span> : Union[sqlalchemy.orm.attributes.InstrumentedAttribute[~_T], ~_T]</code></dt>
 <dd>
 <div class="desc"></div>
@@ -421,7 +449,7 @@ for example, any mapped columns or relationships.</p></div>
         return self.impl.get(state, dict_)  # type: ignore[no-any-return]</code></pre>
 </details>
 </dd>
-<dt id="odyssey.db_models.Citizens.face_features"><code class="name">var <span class="ident">face_features</span> : Union[sqlalchemy.orm.attributes.InstrumentedAttribute[~_T], ~_T]</code></dt>
+<dt id="odyssey.db_models.Citizens.face"><code class="name">var <span class="ident">face</span> : Union[sqlalchemy.orm.attributes.InstrumentedAttribute[~_T], ~_T]</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -445,7 +473,55 @@ for example, any mapped columns or relationships.</p></div>
         return self.impl.get(state, dict_)  # type: ignore[no-any-return]</code></pre>
 </details>
 </dd>
-<dt id="odyssey.db_models.Citizens.fingerprint_features"><code class="name">var <span class="ident">fingerprint_features</span> : Union[sqlalchemy.orm.attributes.InstrumentedAttribute[~_T], ~_T]</code></dt>
+<dt id="odyssey.db_models.Citizens.father_name"><code class="name">var <span class="ident">father_name</span> : Union[sqlalchemy.orm.attributes.InstrumentedAttribute[~_T], ~_T]</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(
+    self, instance: Optional[object], owner: Any
+) -&gt; Union[InstrumentedAttribute[_T], _T]:
+    if instance is None:
+        return self
+
+    dict_ = instance_dict(instance)
+    if self.impl.supports_population and self.key in dict_:
+        return dict_[self.key]  # type: ignore[no-any-return]
+    else:
+        try:
+            state = instance_state(instance)
+        except AttributeError as err:
+            raise orm_exc.UnmappedInstanceError(instance) from err
+        return self.impl.get(state, dict_)  # type: ignore[no-any-return]</code></pre>
+</details>
+</dd>
+<dt id="odyssey.db_models.Citizens.fingerprint"><code class="name">var <span class="ident">fingerprint</span> : Union[sqlalchemy.orm.attributes.InstrumentedAttribute[~_T], ~_T]</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(
+    self, instance: Optional[object], owner: Any
+) -&gt; Union[InstrumentedAttribute[_T], _T]:
+    if instance is None:
+        return self
+
+    dict_ = instance_dict(instance)
+    if self.impl.supports_population and self.key in dict_:
+        return dict_[self.key]  # type: ignore[no-any-return]
+    else:
+        try:
+            state = instance_state(instance)
+        except AttributeError as err:
+            raise orm_exc.UnmappedInstanceError(instance) from err
+        return self.impl.get(state, dict_)  # type: ignore[no-any-return]</code></pre>
+</details>
+</dd>
+<dt id="odyssey.db_models.Citizens.mother_name"><code class="name">var <span class="ident">mother_name</span> : Union[sqlalchemy.orm.attributes.InstrumentedAttribute[~_T], ~_T]</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -493,34 +569,10 @@ for example, any mapped columns or relationships.</p></div>
         return self.impl.get(state, dict_)  # type: ignore[no-any-return]</code></pre>
 </details>
 </dd>
-<dt id="odyssey.db_models.Citizens.uuid"><code class="name">var <span class="ident">uuid</span> : Union[sqlalchemy.orm.attributes.InstrumentedAttribute[~_T], ~_T]</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def __get__(
-    self, instance: Optional[object], owner: Any
-) -&gt; Union[InstrumentedAttribute[_T], _T]:
-    if instance is None:
-        return self
-
-    dict_ = instance_dict(instance)
-    if self.impl.supports_population and self.key in dict_:
-        return dict_[self.key]  # type: ignore[no-any-return]
-    else:
-        try:
-            state = instance_state(instance)
-        except AttributeError as err:
-            raise orm_exc.UnmappedInstanceError(instance) from err
-        return self.impl.get(state, dict_)  # type: ignore[no-any-return]</code></pre>
-</details>
-</dd>
 </dl>
 </dd>
-<dt id="odyssey.db_models.Politicalparties"><code class="flex name class">
-<span>class <span class="ident">Politicalparties</span></span>
+<dt id="odyssey.db_models.PoliticalParties"><code class="flex name class">
+<span>class <span class="ident">PoliticalParties</span></span>
 <span>(</span><span>**kwargs)</span>
 </code></dt>
 <dd>
@@ -537,8 +589,8 @@ for example, any mapped columns or relationships.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Politicalparties(Base):
-    __tablename__ = &#39;politicalparties&#39;
+<pre><code class="python">class PoliticalParties(Base):
+    __tablename__ = &#39;political_parties&#39;
 
     party_id = Column(Integer, primary_key=True)
     name = Column(Text, nullable=False)
@@ -551,18 +603,18 @@ for example, any mapped columns or relationships.</p></div>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="odyssey.db_models.Politicalparties.metadata"><code class="name">var <span class="ident">metadata</span> : MetaData</code></dt>
+<dt id="odyssey.db_models.PoliticalParties.metadata"><code class="name">var <span class="ident">metadata</span> : MetaData</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="odyssey.db_models.Politicalparties.registry"><code class="name">var <span class="ident">registry</span> : RegistryType</code></dt>
+<dt id="odyssey.db_models.PoliticalParties.registry"><code class="name">var <span class="ident">registry</span> : RegistryType</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Instance variables</h3>
 <dl>
-<dt id="odyssey.db_models.Politicalparties.candidate"><code class="name">var <span class="ident">candidate</span> : Union[sqlalchemy.orm.attributes.InstrumentedAttribute[~_T], ~_T]</code></dt>
+<dt id="odyssey.db_models.PoliticalParties.candidate"><code class="name">var <span class="ident">candidate</span> : Union[sqlalchemy.orm.attributes.InstrumentedAttribute[~_T], ~_T]</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -586,7 +638,7 @@ for example, any mapped columns or relationships.</p></div>
         return self.impl.get(state, dict_)  # type: ignore[no-any-return]</code></pre>
 </details>
 </dd>
-<dt id="odyssey.db_models.Politicalparties.name"><code class="name">var <span class="ident">name</span> : Union[sqlalchemy.orm.attributes.InstrumentedAttribute[~_T], ~_T]</code></dt>
+<dt id="odyssey.db_models.PoliticalParties.name"><code class="name">var <span class="ident">name</span> : Union[sqlalchemy.orm.attributes.InstrumentedAttribute[~_T], ~_T]</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -610,7 +662,7 @@ for example, any mapped columns or relationships.</p></div>
         return self.impl.get(state, dict_)  # type: ignore[no-any-return]</code></pre>
 </details>
 </dd>
-<dt id="odyssey.db_models.Politicalparties.party_id"><code class="name">var <span class="ident">party_id</span> : Union[sqlalchemy.orm.attributes.InstrumentedAttribute[~_T], ~_T]</code></dt>
+<dt id="odyssey.db_models.PoliticalParties.party_id"><code class="name">var <span class="ident">party_id</span> : Union[sqlalchemy.orm.attributes.InstrumentedAttribute[~_T], ~_T]</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -655,39 +707,41 @@ for example, any mapped columns or relationships.</p></div>
 <li>
 <h4><code><a title="odyssey.db_models.Candidate" href="#odyssey.db_models.Candidate">Candidate</a></code></h4>
 <ul class="two-column">
-<li><code><a title="odyssey.db_models.Candidate.candidate_id" href="#odyssey.db_models.Candidate.candidate_id">candidate_id</a></code></li>
+<li><code><a title="odyssey.db_models.Candidate.aadhar_number" href="#odyssey.db_models.Candidate.aadhar_number">aadhar_number</a></code></li>
 <li><code><a title="odyssey.db_models.Candidate.citizens" href="#odyssey.db_models.Candidate.citizens">citizens</a></code></li>
+<li><code><a title="odyssey.db_models.Candidate.id" href="#odyssey.db_models.Candidate.id">id</a></code></li>
 <li><code><a title="odyssey.db_models.Candidate.metadata" href="#odyssey.db_models.Candidate.metadata">metadata</a></code></li>
-<li><code><a title="odyssey.db_models.Candidate.name" href="#odyssey.db_models.Candidate.name">name</a></code></li>
 <li><code><a title="odyssey.db_models.Candidate.party" href="#odyssey.db_models.Candidate.party">party</a></code></li>
 <li><code><a title="odyssey.db_models.Candidate.party_id" href="#odyssey.db_models.Candidate.party_id">party_id</a></code></li>
 <li><code><a title="odyssey.db_models.Candidate.registry" href="#odyssey.db_models.Candidate.registry">registry</a></code></li>
-<li><code><a title="odyssey.db_models.Candidate.uuid" href="#odyssey.db_models.Candidate.uuid">uuid</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="odyssey.db_models.Citizens" href="#odyssey.db_models.Citizens">Citizens</a></code></h4>
-<ul class="">
+<ul class="two-column">
+<li><code><a title="odyssey.db_models.Citizens.aadhar_number" href="#odyssey.db_models.Citizens.aadhar_number">aadhar_number</a></code></li>
 <li><code><a title="odyssey.db_models.Citizens.address" href="#odyssey.db_models.Citizens.address">address</a></code></li>
 <li><code><a title="odyssey.db_models.Citizens.candidate" href="#odyssey.db_models.Citizens.candidate">candidate</a></code></li>
 <li><code><a title="odyssey.db_models.Citizens.contact_ph" href="#odyssey.db_models.Citizens.contact_ph">contact_ph</a></code></li>
+<li><code><a title="odyssey.db_models.Citizens.dob" href="#odyssey.db_models.Citizens.dob">dob</a></code></li>
 <li><code><a title="odyssey.db_models.Citizens.email" href="#odyssey.db_models.Citizens.email">email</a></code></li>
-<li><code><a title="odyssey.db_models.Citizens.face_features" href="#odyssey.db_models.Citizens.face_features">face_features</a></code></li>
-<li><code><a title="odyssey.db_models.Citizens.fingerprint_features" href="#odyssey.db_models.Citizens.fingerprint_features">fingerprint_features</a></code></li>
+<li><code><a title="odyssey.db_models.Citizens.face" href="#odyssey.db_models.Citizens.face">face</a></code></li>
+<li><code><a title="odyssey.db_models.Citizens.father_name" href="#odyssey.db_models.Citizens.father_name">father_name</a></code></li>
+<li><code><a title="odyssey.db_models.Citizens.fingerprint" href="#odyssey.db_models.Citizens.fingerprint">fingerprint</a></code></li>
 <li><code><a title="odyssey.db_models.Citizens.metadata" href="#odyssey.db_models.Citizens.metadata">metadata</a></code></li>
+<li><code><a title="odyssey.db_models.Citizens.mother_name" href="#odyssey.db_models.Citizens.mother_name">mother_name</a></code></li>
 <li><code><a title="odyssey.db_models.Citizens.name" href="#odyssey.db_models.Citizens.name">name</a></code></li>
 <li><code><a title="odyssey.db_models.Citizens.registry" href="#odyssey.db_models.Citizens.registry">registry</a></code></li>
-<li><code><a title="odyssey.db_models.Citizens.uuid" href="#odyssey.db_models.Citizens.uuid">uuid</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="odyssey.db_models.Politicalparties" href="#odyssey.db_models.Politicalparties">Politicalparties</a></code></h4>
+<h4><code><a title="odyssey.db_models.PoliticalParties" href="#odyssey.db_models.PoliticalParties">PoliticalParties</a></code></h4>
 <ul class="">
-<li><code><a title="odyssey.db_models.Politicalparties.candidate" href="#odyssey.db_models.Politicalparties.candidate">candidate</a></code></li>
-<li><code><a title="odyssey.db_models.Politicalparties.metadata" href="#odyssey.db_models.Politicalparties.metadata">metadata</a></code></li>
-<li><code><a title="odyssey.db_models.Politicalparties.name" href="#odyssey.db_models.Politicalparties.name">name</a></code></li>
-<li><code><a title="odyssey.db_models.Politicalparties.party_id" href="#odyssey.db_models.Politicalparties.party_id">party_id</a></code></li>
-<li><code><a title="odyssey.db_models.Politicalparties.registry" href="#odyssey.db_models.Politicalparties.registry">registry</a></code></li>
+<li><code><a title="odyssey.db_models.PoliticalParties.candidate" href="#odyssey.db_models.PoliticalParties.candidate">candidate</a></code></li>
+<li><code><a title="odyssey.db_models.PoliticalParties.metadata" href="#odyssey.db_models.PoliticalParties.metadata">metadata</a></code></li>
+<li><code><a title="odyssey.db_models.PoliticalParties.name" href="#odyssey.db_models.PoliticalParties.name">name</a></code></li>
+<li><code><a title="odyssey.db_models.PoliticalParties.party_id" href="#odyssey.db_models.PoliticalParties.party_id">party_id</a></code></li>
+<li><code><a title="odyssey.db_models.PoliticalParties.registry" href="#odyssey.db_models.PoliticalParties.registry">registry</a></code></li>
 </ul>
 </li>
 </ul>

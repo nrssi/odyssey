@@ -26,23 +26,22 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from .db_models import *
+<pre><code class="python">from .db_models import Candidate, Citizens, PoliticalParties
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from .logger import logger
 
-DB_URL = &#34;sqlite:///./uuid_details.db&#34;
+DB_URL = &#34;sqlite:///./information.db&#34;
 engine = create_engine(DB_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-def register_user(name: str, address: str, contact_ph: int, email: str, fingerprint_features: bytes, face_features: bytes) -&gt; bool:
+def register_user(citizen: Citizens) -&gt; bool:
     db = SessionLocal()
-    user = Citizens(name=name, address=address, contact_ph=contact_ph, email=email,
-                    fingerprint_features=fingerprint_features, face_features=face_features)
     try:
-        db.add(user)
+        db.add(citizen)
         db.commit()
+        logger.info(f&#34;{citizen.__dict__} inserted into the database&#34;)
     except Exception as e:
         logger.error(f&#34;Can&#39;t register user due to =&gt; {e}&#34;)
         return False
@@ -69,7 +68,7 @@ def register_candidate(uuid: int, party_id: int) -&gt; bool:
 
 def register_party(name: str) -&gt; bool:
     db = SessionLocal()
-    party = Politicalparties(name=name)
+    party = PoliticalParties(name=name)
     try:
         db.add(party)
         db.commit()
@@ -79,14 +78,15 @@ def register_party(name: str) -&gt; bool:
     return True
 
 
-def fetch_user(id: int) -&gt; Citizens | None:
+def fetch_user(aadhar_number: int) -&gt; Citizens | None:
     db = SessionLocal()
     try:
-        user = db.query(Citizens).filter(Citizens.id == id).first()
+        user = db.query(Citizens).filter(
+            Citizens.aadhar_number == aadhar_number).first()
         return user
     except Exception as e:
         logger.error(
-            f&#34;Citizen with ID {id} doesn&#39;t exist, Additional info : {e}&#34;)
+            f&#34;Citizen with ID {aadhar_number} doesn&#39;t exist, Additional info : {e}&#34;)
         return None
 
 
@@ -129,7 +129,7 @@ def fetch_candidate(id: int) -&gt; Candidate | None:
 </details>
 </dd>
 <dt id="odyssey.db_api.fetch_user"><code class="name flex">
-<span>def <span class="ident">fetch_user</span></span>(<span>id: int) ‑> <a title="odyssey.db_models.Citizens" href="db_models.html#odyssey.db_models.Citizens">Citizens</a> | None</span>
+<span>def <span class="ident">fetch_user</span></span>(<span>aadhar_number: int) ‑> <a title="odyssey.db_models.Citizens" href="db_models.html#odyssey.db_models.Citizens">Citizens</a> | None</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -137,14 +137,15 @@ def fetch_candidate(id: int) -&gt; Candidate | None:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def fetch_user(id: int) -&gt; Citizens | None:
+<pre><code class="python">def fetch_user(aadhar_number: int) -&gt; Citizens | None:
     db = SessionLocal()
     try:
-        user = db.query(Citizens).filter(Citizens.id == id).first()
+        user = db.query(Citizens).filter(
+            Citizens.aadhar_number == aadhar_number).first()
         return user
     except Exception as e:
         logger.error(
-            f&#34;Citizen with ID {id} doesn&#39;t exist, Additional info : {e}&#34;)
+            f&#34;Citizen with ID {aadhar_number} doesn&#39;t exist, Additional info : {e}&#34;)
         return None</code></pre>
 </details>
 </dd>
@@ -186,7 +187,7 @@ def fetch_candidate(id: int) -&gt; Candidate | None:
 </summary>
 <pre><code class="python">def register_party(name: str) -&gt; bool:
     db = SessionLocal()
-    party = Politicalparties(name=name)
+    party = PoliticalParties(name=name)
     try:
         db.add(party)
         db.commit()
@@ -197,7 +198,7 @@ def fetch_candidate(id: int) -&gt; Candidate | None:
 </details>
 </dd>
 <dt id="odyssey.db_api.register_user"><code class="name flex">
-<span>def <span class="ident">register_user</span></span>(<span>name: str, address: str, contact_ph: int, email: str, fingerprint_features: bytes, face_features: bytes) ‑> bool</span>
+<span>def <span class="ident">register_user</span></span>(<span>citizen: <a title="odyssey.db_models.Citizens" href="db_models.html#odyssey.db_models.Citizens">Citizens</a>) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -205,13 +206,12 @@ def fetch_candidate(id: int) -&gt; Candidate | None:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def register_user(name: str, address: str, contact_ph: int, email: str, fingerprint_features: bytes, face_features: bytes) -&gt; bool:
+<pre><code class="python">def register_user(citizen: Citizens) -&gt; bool:
     db = SessionLocal()
-    user = Citizens(name=name, address=address, contact_ph=contact_ph, email=email,
-                    fingerprint_features=fingerprint_features, face_features=face_features)
     try:
-        db.add(user)
+        db.add(citizen)
         db.commit()
+        logger.info(f&#34;{citizen.__dict__} inserted into the database&#34;)
     except Exception as e:
         logger.error(f&#34;Can&#39;t register user due to =&gt; {e}&#34;)
         return False

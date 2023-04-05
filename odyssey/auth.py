@@ -20,7 +20,8 @@ def recognize_face(image1, image2):
         logger.info("Calculating encodings for the image from database...")
         first_encodings = face_recognition.face_encodings(first)[0]
         logger.info("Calculating encodings for the live image...")
-        second_encodings = face_recognition.face_encodings(second)[0]
+        second_encodings = face_recognition.face_encodings(
+            second, num_jitters=2)[0]
     except IndexError:
         logger.error("No face found")
         return False
@@ -28,7 +29,7 @@ def recognize_face(image1, image2):
     result = face_recognition.compare_faces(
         [first_encodings], second_encodings)
     logger.info("Face match Success...")
-    return result
+    return result[0]
 
 
 def recognize_finger(finger1, finger2):

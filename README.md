@@ -17,9 +17,9 @@ optionally run `pdoc odyssey --html -o docs` to disable automatic opening of bro
 
 ## TODO
 + [x] creating the blockchain required using the architecture provided in the diagrams file
-+ [ ] implementing a fingerprint recognition system
-+ [ ] implementing a face recognition system
-+ [ ] handle database for storing biometric data
++ [x] implementing a fingerprint recognition system
++ [x] implementing a face recognition system
++ [x] handle database for storing biometric data
 + [ ] implementing an user interface for the given system 
 
 the pysgfplib is a property of SecuGen company and only should be used under their name only

@@ -44,11 +44,12 @@ optionally run <code>pdoc odyssey --html -o docs</code> to disable automatic ope
 <h2 id="todo">TODO</h2>
 <ul>
 <li>[x] creating the blockchain required using the architecture provided in the diagrams file</li>
-<li>[ ] implementing a fingerprint recognition system</li>
-<li>[ ] implementing a face recognition system</li>
-<li>[ ] handle database for storing biometric data</li>
-<li>[ ] implementing an user interface for the given system</li>
+<li>[x] implementing a fingerprint recognition system</li>
+<li>[x] implementing a face recognition system</li>
+<li>[x] handle database for storing biometric data</li>
+<li>[ ] implementing an user interface for the given system </li>
 </ul>
+<p>the pysgfplib is a property of SecuGen company and only should be used under their name only</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -65,7 +66,8 @@ optionally run <code>pdoc odyssey --html -o docs</code> to disable automatic ope
 
 import os
 
-os.environ[&#34;VP_ROOT_DIR&#34;] = os.path.abspath(os.curdir)</code></pre>
+os.environ[&#34;VP_ROOT_DIR&#34;] = os.path.abspath(os.curdir)
+os.environ[&#34;VP_ASSETS_DIR&#34;] = f&#34;{os.environ[&#39;VP_ROOT_DIR&#39;]}/assets&#34;</code></pre>
 </details>
 </section>
 <section>
@@ -85,6 +87,10 @@ this will also include …</p></div>
 <div class="desc"></div>
 </dd>
 <dt><code class="name"><a title="odyssey.db_models" href="db_models.html">odyssey.db_models</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="odyssey.fingerprint_bindings" href="fingerprint_bindings/index.html">odyssey.fingerprint_bindings</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -126,6 +132,7 @@ logger, this can be used to log information using various …</p></div>
 <li><code><a title="odyssey.blockchain" href="blockchain.html">odyssey.blockchain</a></code></li>
 <li><code><a title="odyssey.db_api" href="db_api.html">odyssey.db_api</a></code></li>
 <li><code><a title="odyssey.db_models" href="db_models.html">odyssey.db_models</a></code></li>
+<li><code><a title="odyssey.fingerprint_bindings" href="fingerprint_bindings/index.html">odyssey.fingerprint_bindings</a></code></li>
 <li><code><a title="odyssey.logger" href="logger.html">odyssey.logger</a></code></li>
 <li><code><a title="odyssey.ui" href="ui/index.html">odyssey.ui</a></code></li>
 </ul>

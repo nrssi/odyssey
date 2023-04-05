@@ -50,14 +50,15 @@ def register_party(name: str) -> bool:
     return True
 
 
-def fetch_user(id: int) -> Citizens | None:
+def fetch_user(aadhar_number: int) -> Citizens | None:
     db = SessionLocal()
     try:
-        user = db.query(Citizens).filter(Citizens.uuid == id).first()
+        user = db.query(Citizens).filter(
+            Citizens.aadhar_number == aadhar_number).first()
         return user
     except Exception as e:
         logger.error(
-            f"Citizen with ID {id} doesn't exist, Additional info : {e}")
+            f"Citizen with ID {aadhar_number} doesn't exist, Additional info : {e}")
         return None
 
 

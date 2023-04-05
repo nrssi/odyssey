@@ -28,23 +28,41 @@
 </summary>
 <pre><code class="python">from kivymd.app import MDApp
 from kivy.uix.screenmanager import ScreenManager
-
+import os
 from .voterdetails import DetailScreen
 
-from .login import LoginScreen
+
+from .login import WelcomeScreen
 from .register import RegisterScreen
+from .authenticate import AuthScreen
+from .voting_page import VoteScreen
+from .thankyou import ThankYouScreen
 
 
 class BiometricVoting(MDApp):
     def build(self):
         self.data = {}
-        self.theme_cls.theme_style = &#34;Dark&#34;
+        self.theme_cls.theme_style = &#34;Light&#34;
         self.theme_cls.primary_palette = &#34;Orange&#34;
-        self.theme_cls.primary_hue = &#39;50&#39;
+        self.load_kv(
+            f&#34;{os.environ[&#39;VP_ASSETS_DIR&#39;]}/UI/layouts/login_layout.kv&#34;)
+        self.load_kv(
+            f&#34;{os.environ[&#39;VP_ASSETS_DIR&#39;]}/UI/layouts/register_layout.kv&#34;)
+        self.load_kv(
+            f&#34;{os.environ[&#39;VP_ASSETS_DIR&#39;]}/UI/layouts/details_layout.kv&#34;)
+        self.load_kv(
+            f&#34;{os.environ[&#39;VP_ASSETS_DIR&#39;]}/UI/layouts/auth_layout.kv&#34;)
+        self.load_kv(
+            f&#34;{os.environ[&#39;VP_ASSETS_DIR&#39;]}/UI/layouts/voting_layout.kv&#34;)
+        self.load_kv(
+            f&#34;{os.environ[&#39;VP_ASSETS_DIR&#39;]}/UI/layouts/thankyou_layout.kv&#34;)
         screen_manager = ScreenManager()
-        screen_manager.add_widget(LoginScreen(name=&#34;login&#34;))
+        screen_manager.add_widget(WelcomeScreen(name=&#34;login&#34;))
         screen_manager.add_widget(RegisterScreen(name=&#34;register&#34;))
-        # screen_manager.add_widget(DetailScreen(name=&#34;details&#34;))
+        screen_manager.add_widget(DetailScreen(name=&#34;details&#34;))
+        screen_manager.add_widget(AuthScreen(name=&#34;auth&#34;))
+        screen_manager.add_widget(VoteScreen(name=&#34;vote&#34;))
+        screen_manager.add_widget(ThankYouScreen(name=&#34;thanks&#34;))
         return screen_manager</code></pre>
 </details>
 </section>
@@ -71,13 +89,27 @@ information.</p></div>
 <pre><code class="python">class BiometricVoting(MDApp):
     def build(self):
         self.data = {}
-        self.theme_cls.theme_style = &#34;Dark&#34;
+        self.theme_cls.theme_style = &#34;Light&#34;
         self.theme_cls.primary_palette = &#34;Orange&#34;
-        self.theme_cls.primary_hue = &#39;50&#39;
+        self.load_kv(
+            f&#34;{os.environ[&#39;VP_ASSETS_DIR&#39;]}/UI/layouts/login_layout.kv&#34;)
+        self.load_kv(
+            f&#34;{os.environ[&#39;VP_ASSETS_DIR&#39;]}/UI/layouts/register_layout.kv&#34;)
+        self.load_kv(
+            f&#34;{os.environ[&#39;VP_ASSETS_DIR&#39;]}/UI/layouts/details_layout.kv&#34;)
+        self.load_kv(
+            f&#34;{os.environ[&#39;VP_ASSETS_DIR&#39;]}/UI/layouts/auth_layout.kv&#34;)
+        self.load_kv(
+            f&#34;{os.environ[&#39;VP_ASSETS_DIR&#39;]}/UI/layouts/voting_layout.kv&#34;)
+        self.load_kv(
+            f&#34;{os.environ[&#39;VP_ASSETS_DIR&#39;]}/UI/layouts/thankyou_layout.kv&#34;)
         screen_manager = ScreenManager()
-        screen_manager.add_widget(LoginScreen(name=&#34;login&#34;))
+        screen_manager.add_widget(WelcomeScreen(name=&#34;login&#34;))
         screen_manager.add_widget(RegisterScreen(name=&#34;register&#34;))
-        # screen_manager.add_widget(DetailScreen(name=&#34;details&#34;))
+        screen_manager.add_widget(DetailScreen(name=&#34;details&#34;))
+        screen_manager.add_widget(AuthScreen(name=&#34;auth&#34;))
+        screen_manager.add_widget(VoteScreen(name=&#34;vote&#34;))
+        screen_manager.add_widget(ThankYouScreen(name=&#34;thanks&#34;))
         return screen_manager</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -106,13 +138,27 @@ if no self.root exists.</p></div>
 </summary>
 <pre><code class="python">def build(self):
     self.data = {}
-    self.theme_cls.theme_style = &#34;Dark&#34;
+    self.theme_cls.theme_style = &#34;Light&#34;
     self.theme_cls.primary_palette = &#34;Orange&#34;
-    self.theme_cls.primary_hue = &#39;50&#39;
+    self.load_kv(
+        f&#34;{os.environ[&#39;VP_ASSETS_DIR&#39;]}/UI/layouts/login_layout.kv&#34;)
+    self.load_kv(
+        f&#34;{os.environ[&#39;VP_ASSETS_DIR&#39;]}/UI/layouts/register_layout.kv&#34;)
+    self.load_kv(
+        f&#34;{os.environ[&#39;VP_ASSETS_DIR&#39;]}/UI/layouts/details_layout.kv&#34;)
+    self.load_kv(
+        f&#34;{os.environ[&#39;VP_ASSETS_DIR&#39;]}/UI/layouts/auth_layout.kv&#34;)
+    self.load_kv(
+        f&#34;{os.environ[&#39;VP_ASSETS_DIR&#39;]}/UI/layouts/voting_layout.kv&#34;)
+    self.load_kv(
+        f&#34;{os.environ[&#39;VP_ASSETS_DIR&#39;]}/UI/layouts/thankyou_layout.kv&#34;)
     screen_manager = ScreenManager()
-    screen_manager.add_widget(LoginScreen(name=&#34;login&#34;))
+    screen_manager.add_widget(WelcomeScreen(name=&#34;login&#34;))
     screen_manager.add_widget(RegisterScreen(name=&#34;register&#34;))
-    # screen_manager.add_widget(DetailScreen(name=&#34;details&#34;))
+    screen_manager.add_widget(DetailScreen(name=&#34;details&#34;))
+    screen_manager.add_widget(AuthScreen(name=&#34;auth&#34;))
+    screen_manager.add_widget(VoteScreen(name=&#34;vote&#34;))
+    screen_manager.add_widget(ThankYouScreen(name=&#34;thanks&#34;))
     return screen_manager</code></pre>
 </details>
 </dd>

@@ -114,7 +114,7 @@ class AuthScreen(Screen):
     is_faceauth: bool
     is_fingerauth: bool
 
-    def on_enter(self):
+    def on_pre_enter(self):
         self.ids.fp.start()
         self.ids.cam.start()
         self.is_faceauth = False
@@ -128,14 +128,15 @@ class AuthScreen(Screen):
         if is_match:
             self.is_faceauth = True
             self.ids.cam.stop()
-            self.ids.cam.source = f"{os.environ['VP_ASSETS_DIR']}/UI/tick.gif"
-            self.ids.cam.anim_delay = 0.02
+            self.ids.cam.source = f"{os.environ['VP_ASSETS_DIR']}/UI/images/tick.gif"
+            self.ids.cam.anim_delay = 0.04
             self.ids.cam.anim_loop = 1
+            self.ids.face_card.md_bg_color = "#ffffff"
         else:
             self.ids.face_card.md_bg_color = "#f00000"
         logger.debug("Result of face match is : ", is_match)
         if self.is_fingerauth and self.is_faceauth:
-            self.manager.current = "login"
+            self.manager.current = "vote"
 
     def finger_authenticate(self):
         self.data = MDApp.get_running_app().data
@@ -146,12 +147,13 @@ class AuthScreen(Screen):
             self.ids.fp.get_frame(), decoded_data)
         if is_match:
             self.is_fingerauth = True
+            self.ids.finger_card.md_bg_color = "#ffffff"
             self.ids.fp.stop()
-            self.ids.fp.source = f"{os.environ['VP_ASSETS_DIR']}/UI/tick.gif"
-            self.ids.fp.anim_delay = 0.02
+            self.ids.fp.source = f"{os.environ['VP_ASSETS_DIR']}/UI/images/tick.gif"
+            self.ids.fp.anim_delay = 0.04
             self.ids.fp.anim_loop = 1
         else:
             self.ids.finger_card.md_bg_color = "#f00000"
         logger.debug("Result of finger match is : ", is_match)
         if self.is_fingerauth and self.is_faceauth:
-            self.manager.current = "login"
+            self.manager.current = "vote"

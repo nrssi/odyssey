@@ -28,6 +28,7 @@
 </summary>
 <pre><code class="python">import face_recognition
 import io
+import cv2
 from .logger import logger
 
 
@@ -47,7 +48,8 @@ def recognize_face(image1, image2):
         logger.info(&#34;Calculating encodings for the image from database...&#34;)
         first_encodings = face_recognition.face_encodings(first)[0]
         logger.info(&#34;Calculating encodings for the live image...&#34;)
-        second_encodings = face_recognition.face_encodings(second)[0]
+        second_encodings = face_recognition.face_encodings(
+            second, num_jitters=2)[0]
     except IndexError:
         logger.error(&#34;No face found&#34;)
         return False
@@ -55,7 +57,29 @@ def recognize_face(image1, image2):
     result = face_recognition.compare_faces(
         [first_encodings], second_encodings)
     logger.info(&#34;Face match Success...&#34;)
-    return result</code></pre>
+    return result[0]
+
+
+def recognize_finger(finger1, finger2):
+    finger1 = cv2.cvtColor(finger1, cv2.COLOR_BGR2GRAY)
+    sift = cv2.xfeatures2d.SIFT_create()
+    k1, d1 = sift.detectAndCompute(finger1, None)
+    k2, d2 = sift.detectAndCompute(finger2, None)
+    index_params = dict(algorithm=0, trees=5)
+    search_params = dict(checks=50)
+    flann = cv2.FlannBasedMatcher(index_params, search_params)
+    matches = flann.knnMatch(d1, d2, k=2)
+
+    good_matches = []
+    ratio_thresh = 0.7
+    for m, n in matches:
+        if m.distance &lt; ratio_thresh * n.distance:
+            good_matches.append(m)
+    match_thresh = 80
+    if len(good_matches) &gt;= match_thresh:
+        return True
+    else:
+        return False</code></pre>
 </details>
 </section>
 <section>
@@ -94,7 +118,8 @@ send data from database via image1 and live image via image2</p></div>
         logger.info(&#34;Calculating encodings for the image from database...&#34;)
         first_encodings = face_recognition.face_encodings(first)[0]
         logger.info(&#34;Calculating encodings for the live image...&#34;)
-        second_encodings = face_recognition.face_encodings(second)[0]
+        second_encodings = face_recognition.face_encodings(
+            second, num_jitters=2)[0]
     except IndexError:
         logger.error(&#34;No face found&#34;)
         return False
@@ -102,7 +127,38 @@ send data from database via image1 and live image via image2</p></div>
     result = face_recognition.compare_faces(
         [first_encodings], second_encodings)
     logger.info(&#34;Face match Success...&#34;)
-    return result</code></pre>
+    return result[0]</code></pre>
+</details>
+</dd>
+<dt id="odyssey.auth.recognize_finger"><code class="name flex">
+<span>def <span class="ident">recognize_finger</span></span>(<span>finger1, finger2)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def recognize_finger(finger1, finger2):
+    finger1 = cv2.cvtColor(finger1, cv2.COLOR_BGR2GRAY)
+    sift = cv2.xfeatures2d.SIFT_create()
+    k1, d1 = sift.detectAndCompute(finger1, None)
+    k2, d2 = sift.detectAndCompute(finger2, None)
+    index_params = dict(algorithm=0, trees=5)
+    search_params = dict(checks=50)
+    flann = cv2.FlannBasedMatcher(index_params, search_params)
+    matches = flann.knnMatch(d1, d2, k=2)
+
+    good_matches = []
+    ratio_thresh = 0.7
+    for m, n in matches:
+        if m.distance &lt; ratio_thresh * n.distance:
+            good_matches.append(m)
+    match_thresh = 80
+    if len(good_matches) &gt;= match_thresh:
+        return True
+    else:
+        return False</code></pre>
 </details>
 </dd>
 </dl>
@@ -124,6 +180,7 @@ send data from database via image1 and live image via image2</p></div>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="odyssey.auth.recognize_face" href="#odyssey.auth.recognize_face">recognize_face</a></code></li>
+<li><code><a title="odyssey.auth.recognize_finger" href="#odyssey.auth.recognize_finger">recognize_finger</a></code></li>
 </ul>
 </li>
 </ul>

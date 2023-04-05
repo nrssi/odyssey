@@ -11,4 +11,4 @@
 import os
 
 os.environ["VP_ROOT_DIR"] = os.path.abspath(os.curdir)
-os.environ["VP_ASSETS_DIR"] = f"{os.environ['VP_ROOT_DIR']}/assets/"
+os.environ["VP_ASSETS_DIR"] = f"{os.environ['VP_ROOT_DIR']}/assets"

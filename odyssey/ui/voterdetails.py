@@ -29,7 +29,7 @@ class DetailScreen(Screen):
         self.ids.contact_ph.text = str(user.contact_ph)
         self.ids.mother_name.text = user.mother_name
         self.ids.father_name.text = user.father_name
-        self.ids.uuid.text = str(user.uuid)
+        self.ids.uuid.text = str(user.aadhar_number)
         self.ids.dob.text = str(user.dob)
         self.ids.face_data.texture = self.get_blob_texture(user.face, True)
         self.ids.finger_data.texture = self.get_blob_texture(

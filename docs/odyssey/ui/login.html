@@ -26,71 +26,33 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import os
-from kivy.uix.image import Image
-from kivymd.app import MDApp
-from kivymd.uix.screen import Screen
-from kivymd.uix.card import MDCard
-from kivymd.uix.textfield import MDTextField
-from kivymd.uix.button import MDRectangleFlatButton
-from kivymd.uix.gridlayout import MDGridLayout
+<pre><code class="python">from kivymd.app import MDApp
+from kivymd.uix.screen import MDScreen
+from kivy.lang import Builder
+from kivymd.uix.carousel import Carousel
+from kivy.clock import Clock
+import os
 
 
-class LoginScreen(Screen):
+class QuotesCarousel(Carousel):
+
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super(QuotesCarousel, self).__init__(**kwargs)
+        self.interval = 3
+        Clock.schedule_interval(self.load_next, self.interval)
 
-        card = MDCard(size_hint=(None, None), size=(400, 500),
-                      pos_hint={&#34;center_x&#34;: 0.5, &#34;center_y&#34;: 0.5})
-        card.orientation = &#34;vertical&#34;
-        card.padding = [25, 25, 25, 40]
-        title_gif_path = os.environ[&#34;VP_ROOT_DIR&#34;] + \
-            &#34;/assets/UI/voting.gif&#34;
-        title_gif = Image(source=title_gif_path, anim_delay=0.04)
-        self.uuid_input = MDTextField(
-            hint_text=&#34;UUID&#34;,
-            mode=&#34;rectangle&#34;,
-            helper_text_mode=&#34;on_focus&#34;,
-            size_hint=(1, None),
-            height=50,
-            pos_hint={&#34;top&#34;: 0.5, &#34;left&#34;: 0.5}
-        )
 
-        new_user_label = MDRectangleFlatButton(
-            text=&#34;New User?&#34;,
-            size_hint=(0.5, None),
-            height=50,
-            on_press=self.new_user_callback
-        )
+class WelcomeScreen(MDScreen):
+    def __init__(self, **kwargs):
+        super(WelcomeScreen, self).__init__(**kwargs)
 
-        proceed_button = MDRectangleFlatButton(
-            text=&#34;Proceed&#34;,
-            size_hint=(0.5, None),
-            height=50,
-        )
-
-        button_box = MDGridLayout(
-            cols=2,
-            size_hint=(1, None),
-            height=50,
-            spacing=20,
-            padding=[0, 20, 0, 0]
-        )
-
-        button_box.add_widget(new_user_label)
-        button_box.add_widget(proceed_button)
-        card.add_widget(title_gif)
-        card.add_widget(self.uuid_input)
-        card.add_widget(button_box)
-
-        self.add_widget(card)
-
-    def new_user_callback(self, _):
+    def new_user_callback(self):
         self.manager.current = &#34;register&#34;
 
-    def proceed_button_callback(self, _):
+    def proceed_button_callback(self):
         data = MDApp.get_running_app().data
-        data[&#34;uuid&#34;] = self.uuid_input.text
+        uuid_input = self.ids.uuid
+        data[&#34;uuid&#34;] = uuid_input.text
         self.manager.current = &#34;details&#34;</code></pre>
 </details>
 </section>
@@ -103,94 +65,62 @@ class LoginScreen(Screen):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="odyssey.ui.login.LoginScreen"><code class="flex name class">
-<span>class <span class="ident">LoginScreen</span></span>
+<dt id="odyssey.ui.login.QuotesCarousel"><code class="flex name class">
+<span>class <span class="ident">QuotesCarousel</span></span>
 <span>(</span><span>**kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Screen is an element intended to be used with a :class:<code>ScreenManager</code>.
-Check module documentation for more information.</p>
-<p>:Events:
-<code>on_pre_enter</code>: ()
-Event fired when the screen is about to be used: the entering
-animation is started.
-<code>on_enter</code>: ()
-Event fired when the screen is displayed: the entering animation is
-complete.
-<code>on_pre_leave</code>: ()
-Event fired when the screen is about to be removed: the leaving
-animation is started.
-<code>on_leave</code>: ()
-Event fired when the screen is removed: the leaving animation is
-finished.</p>
-<div class="admonition versionchanged">
-<p class="admonition-title">Changed in version:&ensp;1.6.0</p>
-<p>Events <code>on_pre_enter</code>, <code>on_enter</code>, <code>on_pre_leave</code> and <code>on_leave</code> were
-added.</p>
-</div></div>
+<div class="desc"><p>Carousel class. See module documentation for more information.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class LoginScreen(Screen):
+<pre><code class="python">class QuotesCarousel(Carousel):
+
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super(QuotesCarousel, self).__init__(**kwargs)
+        self.interval = 3
+        Clock.schedule_interval(self.load_next, self.interval)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>kivy.uix.carousel.Carousel</li>
+<li>kivy.uix.stencilview.StencilView</li>
+<li>kivy.uix.widget.Widget</li>
+<li>kivy.uix.widget.WidgetBase</li>
+<li>kivy._event.EventDispatcher</li>
+<li>kivy._event.ObjectWithUid</li>
+</ul>
+</dd>
+<dt id="odyssey.ui.login.WelcomeScreen"><code class="flex name class">
+<span>class <span class="ident">WelcomeScreen</span></span>
+<span>(</span><span>**kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Screen is an element intended to be used with a
+:class:<code>~kivymd.uix.screenmanager.MDScreenManager</code>. For more information,
+see in the :class:<code>~kivy.uix.screenmanager.Screen</code> class documentation.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class WelcomeScreen(MDScreen):
+    def __init__(self, **kwargs):
+        super(WelcomeScreen, self).__init__(**kwargs)
 
-        card = MDCard(size_hint=(None, None), size=(400, 500),
-                      pos_hint={&#34;center_x&#34;: 0.5, &#34;center_y&#34;: 0.5})
-        card.orientation = &#34;vertical&#34;
-        card.padding = [25, 25, 25, 40]
-        title_gif_path = os.environ[&#34;VP_ROOT_DIR&#34;] + \
-            &#34;/assets/UI/voting.gif&#34;
-        title_gif = Image(source=title_gif_path, anim_delay=0.04)
-        self.uuid_input = MDTextField(
-            hint_text=&#34;UUID&#34;,
-            mode=&#34;rectangle&#34;,
-            helper_text_mode=&#34;on_focus&#34;,
-            size_hint=(1, None),
-            height=50,
-            pos_hint={&#34;top&#34;: 0.5, &#34;left&#34;: 0.5}
-        )
-
-        new_user_label = MDRectangleFlatButton(
-            text=&#34;New User?&#34;,
-            size_hint=(0.5, None),
-            height=50,
-            on_press=self.new_user_callback
-        )
-
-        proceed_button = MDRectangleFlatButton(
-            text=&#34;Proceed&#34;,
-            size_hint=(0.5, None),
-            height=50,
-        )
-
-        button_box = MDGridLayout(
-            cols=2,
-            size_hint=(1, None),
-            height=50,
-            spacing=20,
-            padding=[0, 20, 0, 0]
-        )
-
-        button_box.add_widget(new_user_label)
-        button_box.add_widget(proceed_button)
-        card.add_widget(title_gif)
-        card.add_widget(self.uuid_input)
-        card.add_widget(button_box)
-
-        self.add_widget(card)
-
-    def new_user_callback(self, _):
+    def new_user_callback(self):
         self.manager.current = &#34;register&#34;
 
-    def proceed_button_callback(self, _):
+    def proceed_button_callback(self):
         data = MDApp.get_running_app().data
-        data[&#34;uuid&#34;] = self.uuid_input.text
+        uuid_input = self.ids.uuid
+        data[&#34;uuid&#34;] = uuid_input.text
         self.manager.current = &#34;details&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
+<li>kivymd.uix.screen.MDScreen</li>
+<li>kivymd.uix.behaviors.declarative_behavior.DeclarativeBehavior</li>
 <li>kivy.uix.screenmanager.Screen</li>
 <li>kivy.uix.relativelayout.RelativeLayout</li>
 <li>kivy.uix.floatlayout.FloatLayout</li>
@@ -199,11 +129,14 @@ added.</p>
 <li>kivy.uix.widget.WidgetBase</li>
 <li>kivy._event.EventDispatcher</li>
 <li>kivy._event.ObjectWithUid</li>
+<li>kivymd.uix.MDAdaptiveWidget</li>
+<li>kivymd.uix.behaviors.backgroundcolor_behavior.SpecificBackgroundColorBehavior</li>
+<li>kivymd.uix.behaviors.backgroundcolor_behavior.BackgroundColorBehavior</li>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="odyssey.ui.login.LoginScreen.new_user_callback"><code class="name flex">
-<span>def <span class="ident">new_user_callback</span></span>(<span>self, _)</span>
+<dt id="odyssey.ui.login.WelcomeScreen.new_user_callback"><code class="name flex">
+<span>def <span class="ident">new_user_callback</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -211,12 +144,12 @@ added.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def new_user_callback(self, _):
+<pre><code class="python">def new_user_callback(self):
     self.manager.current = &#34;register&#34;</code></pre>
 </details>
 </dd>
-<dt id="odyssey.ui.login.LoginScreen.proceed_button_callback"><code class="name flex">
-<span>def <span class="ident">proceed_button_callback</span></span>(<span>self, _)</span>
+<dt id="odyssey.ui.login.WelcomeScreen.proceed_button_callback"><code class="name flex">
+<span>def <span class="ident">proceed_button_callback</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -224,9 +157,10 @@ added.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def proceed_button_callback(self, _):
+<pre><code class="python">def proceed_button_callback(self):
     data = MDApp.get_running_app().data
-    data[&#34;uuid&#34;] = self.uuid_input.text
+    uuid_input = self.ids.uuid
+    data[&#34;uuid&#34;] = uuid_input.text
     self.manager.current = &#34;details&#34;</code></pre>
 </details>
 </dd>
@@ -249,10 +183,13 @@ added.</p>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="odyssey.ui.login.LoginScreen" href="#odyssey.ui.login.LoginScreen">LoginScreen</a></code></h4>
+<h4><code><a title="odyssey.ui.login.QuotesCarousel" href="#odyssey.ui.login.QuotesCarousel">QuotesCarousel</a></code></h4>
+</li>
+<li>
+<h4><code><a title="odyssey.ui.login.WelcomeScreen" href="#odyssey.ui.login.WelcomeScreen">WelcomeScreen</a></code></h4>
 <ul class="">
-<li><code><a title="odyssey.ui.login.LoginScreen.new_user_callback" href="#odyssey.ui.login.LoginScreen.new_user_callback">new_user_callback</a></code></li>
-<li><code><a title="odyssey.ui.login.LoginScreen.proceed_button_callback" href="#odyssey.ui.login.LoginScreen.proceed_button_callback">proceed_button_callback</a></code></li>
+<li><code><a title="odyssey.ui.login.WelcomeScreen.new_user_callback" href="#odyssey.ui.login.WelcomeScreen.new_user_callback">new_user_callback</a></code></li>
+<li><code><a title="odyssey.ui.login.WelcomeScreen.proceed_button_callback" href="#odyssey.ui.login.WelcomeScreen.proceed_button_callback">proceed_button_callback</a></code></li>
 </ul>
 </li>
 </ul>

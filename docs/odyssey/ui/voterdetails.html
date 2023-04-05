@@ -28,73 +28,52 @@
 </summary>
 <pre><code class="python">from kivymd.app import MDApp
 from kivymd.uix import Screen
-from kivymd.uix.button import MDRectangleFlatButton
-from kivymd.uix.textfield import MDTextField
+from kivy.graphics.texture import Texture
 from kivy.uix.image import Image
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.gridlayout import MDGridLayout
-import os
-import io
-
-from ..db_models import Citizens
+import cv2
+import numpy as np
 from ..db_api import fetch_user
 
 
 class DetailScreen(Screen):
+    user_name = &#34;&#34;
+    uuid = &#34;&#34;
+    address = &#34;&#34;
+    contact_ph = &#34;&#34;
+    email = &#34;&#34;
+    father_name = &#34;&#34;
+    mother_name = &#34;&#34;
+    dob = &#34;&#34;
+
     def __init__(self, **kw):
         super().__init__(**kw)
-        data = MDApp.get_running_app().data
-        voter_details: Citizens = None
-        layout = MDGridLayout(cols=2)
-        layout.spacing = 20
-        layout.padding = [10, 0, 10, 0]
-        # self.add_widget(layout)
-        biom_layout = MDBoxLayout(orientation=&#34;vertical&#34;, pos_hint={
-                                  &#34;center_x&#34;: 1, &#34;center_y&#34;: 1}, spacing=10, padding=[10, 10, 10, 10])
-        details_layout = MDBoxLayout(orientation=&#34;vertical&#34;, spacing=10)
-        self.image = Image(source=io.BytesIO(voter_details.face_features))
-        fingerprint_image = Image(
-            source=&#34;/home/shashank/Pictures/wallpapers/nixos.png&#34;)
-        biom_layout.add_widget(fingerprint_image)
 
-        register_gif_path = os.environ[&#34;VP_ROOT_DIR&#34;] + \
-            &#34;/assets/UI/register.gif&#34;
-        self.registration_anim = Image(
-            source=register_gif_path, anim_delay=0.04)
-        name_input = MDTextField(hint_text=&#34;name&#34;, mode=&#34;rectangle&#34;)
-        self.address_input = MDTextField(hint_text=&#34;address&#34;, mode=&#34;rectangle&#34;)
-        self.father_name_input = MDTextField(
-            hint_text=&#34;father&#39;s name&#34;, mode=&#34;rectangle&#34;)
-        self.dob_input = MDTextField(
-            hint_text=&#34;date of birth&#34;, mode=&#34;rectangle&#34;)
-        self.email_input = MDTextField(hint_text=&#34;email&#34;, mode=&#34;rectangle&#34;)
-        self.contact_ph_input = MDTextField(
-            hint_text=&#34;contact number&#34;, mode=&#34;rectangle&#34;)
-        self.register_button = MDRectangleFlatButton(
-            text=&#34;Register&#34;, size_hint={1, None})
-        self.back_button = MDRectangleFlatButton(
-            text=&#34;Back&#34;, on_press=self.back_button_callback, size_hint={1, None})
-        details_layout.add_widget(self.registration_anim)
-        details_layout.add_widget(name_input)
-        details_layout.add_widget(self.address_input)
-        details_layout.add_widget(self.father_name_input)
-        details_layout.add_widget(self.dob_input)
-        details_layout.add_widget(self.email_input)
-        details_layout.add_widget(self.back_button)
-        details_layout.add_widget(self.register_button)
-        layout.add_widget(biom_layout)
-        layout.add_widget(details_layout)
-        self.add_widget(layout)
+    def on_pre_enter(self, *args):
+        self.data = MDApp.get_running_app().data
+        user = fetch_user(int(self.data[&#34;uuid&#34;]))
+        self.ids.user_name.text = user.name
+        self.ids.address.text = user.address
+        self.ids.email.text = user.email
+        self.ids.contact_ph.text = str(user.contact_ph)
+        self.ids.mother_name.text = user.mother_name
+        self.ids.father_name.text = user.father_name
+        self.ids.uuid.text = str(user.aadhar_number)
+        self.ids.dob.text = str(user.dob)
+        self.ids.face_data.texture = self.get_blob_texture(user.face, True)
+        self.ids.finger_data.texture = self.get_blob_texture(
+            user.fingerprint, False)
 
-    def on_enter(self, *args):
-        self.web_camera.play = True
-
-    def on_leave(self, *args):
-        print(&#34;debug&#34;)
-        self.web_camera.play = False
-
-    def back_button_callback(self, _):
-        self.manager.current = &#34;login&#34;</code></pre>
+    def get_blob_texture(self, blob, flip):
+        bgr_img = cv2.imdecode(np.frombuffer(
+            blob, np.uint8), cv2.IMREAD_COLOR)
+        rgb_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2RGB)
+        if flip:
+            rgb_img = cv2.flip(rgb_img, 0)
+        texture = Texture.create(
+            size=(rgb_img.shape[1], rgb_img.shape[0]), colorfmt=&#39;rgb&#39;)
+        texture.blit_buffer(rgb_img.tobytes(),
+                            colorfmt=&#39;rgb&#39;, bufferfmt=&#39;ubyte&#39;)
+        return texture</code></pre>
 </details>
 </section>
 <section>
@@ -136,60 +115,44 @@ added.</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class DetailScreen(Screen):
+    user_name = &#34;&#34;
+    uuid = &#34;&#34;
+    address = &#34;&#34;
+    contact_ph = &#34;&#34;
+    email = &#34;&#34;
+    father_name = &#34;&#34;
+    mother_name = &#34;&#34;
+    dob = &#34;&#34;
+
     def __init__(self, **kw):
         super().__init__(**kw)
-        data = MDApp.get_running_app().data
-        voter_details: Citizens = None
-        layout = MDGridLayout(cols=2)
-        layout.spacing = 20
-        layout.padding = [10, 0, 10, 0]
-        # self.add_widget(layout)
-        biom_layout = MDBoxLayout(orientation=&#34;vertical&#34;, pos_hint={
-                                  &#34;center_x&#34;: 1, &#34;center_y&#34;: 1}, spacing=10, padding=[10, 10, 10, 10])
-        details_layout = MDBoxLayout(orientation=&#34;vertical&#34;, spacing=10)
-        self.image = Image(source=io.BytesIO(voter_details.face_features))
-        fingerprint_image = Image(
-            source=&#34;/home/shashank/Pictures/wallpapers/nixos.png&#34;)
-        biom_layout.add_widget(fingerprint_image)
 
-        register_gif_path = os.environ[&#34;VP_ROOT_DIR&#34;] + \
-            &#34;/assets/UI/register.gif&#34;
-        self.registration_anim = Image(
-            source=register_gif_path, anim_delay=0.04)
-        name_input = MDTextField(hint_text=&#34;name&#34;, mode=&#34;rectangle&#34;)
-        self.address_input = MDTextField(hint_text=&#34;address&#34;, mode=&#34;rectangle&#34;)
-        self.father_name_input = MDTextField(
-            hint_text=&#34;father&#39;s name&#34;, mode=&#34;rectangle&#34;)
-        self.dob_input = MDTextField(
-            hint_text=&#34;date of birth&#34;, mode=&#34;rectangle&#34;)
-        self.email_input = MDTextField(hint_text=&#34;email&#34;, mode=&#34;rectangle&#34;)
-        self.contact_ph_input = MDTextField(
-            hint_text=&#34;contact number&#34;, mode=&#34;rectangle&#34;)
-        self.register_button = MDRectangleFlatButton(
-            text=&#34;Register&#34;, size_hint={1, None})
-        self.back_button = MDRectangleFlatButton(
-            text=&#34;Back&#34;, on_press=self.back_button_callback, size_hint={1, None})
-        details_layout.add_widget(self.registration_anim)
-        details_layout.add_widget(name_input)
-        details_layout.add_widget(self.address_input)
-        details_layout.add_widget(self.father_name_input)
-        details_layout.add_widget(self.dob_input)
-        details_layout.add_widget(self.email_input)
-        details_layout.add_widget(self.back_button)
-        details_layout.add_widget(self.register_button)
-        layout.add_widget(biom_layout)
-        layout.add_widget(details_layout)
-        self.add_widget(layout)
+    def on_pre_enter(self, *args):
+        self.data = MDApp.get_running_app().data
+        user = fetch_user(int(self.data[&#34;uuid&#34;]))
+        self.ids.user_name.text = user.name
+        self.ids.address.text = user.address
+        self.ids.email.text = user.email
+        self.ids.contact_ph.text = str(user.contact_ph)
+        self.ids.mother_name.text = user.mother_name
+        self.ids.father_name.text = user.father_name
+        self.ids.uuid.text = str(user.aadhar_number)
+        self.ids.dob.text = str(user.dob)
+        self.ids.face_data.texture = self.get_blob_texture(user.face, True)
+        self.ids.finger_data.texture = self.get_blob_texture(
+            user.fingerprint, False)
 
-    def on_enter(self, *args):
-        self.web_camera.play = True
-
-    def on_leave(self, *args):
-        print(&#34;debug&#34;)
-        self.web_camera.play = False
-
-    def back_button_callback(self, _):
-        self.manager.current = &#34;login&#34;</code></pre>
+    def get_blob_texture(self, blob, flip):
+        bgr_img = cv2.imdecode(np.frombuffer(
+            blob, np.uint8), cv2.IMREAD_COLOR)
+        rgb_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2RGB)
+        if flip:
+            rgb_img = cv2.flip(rgb_img, 0)
+        texture = Texture.create(
+            size=(rgb_img.shape[1], rgb_img.shape[0]), colorfmt=&#39;rgb&#39;)
+        texture.blit_buffer(rgb_img.tobytes(),
+                            colorfmt=&#39;rgb&#39;, bufferfmt=&#39;ubyte&#39;)
+        return texture</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -202,10 +165,45 @@ added.</p>
 <li>kivy._event.EventDispatcher</li>
 <li>kivy._event.ObjectWithUid</li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="odyssey.ui.voterdetails.DetailScreen.address"><code class="name">var <span class="ident">address</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="odyssey.ui.voterdetails.DetailScreen.contact_ph"><code class="name">var <span class="ident">contact_ph</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="odyssey.ui.voterdetails.DetailScreen.dob"><code class="name">var <span class="ident">dob</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="odyssey.ui.voterdetails.DetailScreen.email"><code class="name">var <span class="ident">email</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="odyssey.ui.voterdetails.DetailScreen.father_name"><code class="name">var <span class="ident">father_name</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="odyssey.ui.voterdetails.DetailScreen.mother_name"><code class="name">var <span class="ident">mother_name</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="odyssey.ui.voterdetails.DetailScreen.user_name"><code class="name">var <span class="ident">user_name</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="odyssey.ui.voterdetails.DetailScreen.uuid"><code class="name">var <span class="ident">uuid</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Methods</h3>
 <dl>
-<dt id="odyssey.ui.voterdetails.DetailScreen.back_button_callback"><code class="name flex">
-<span>def <span class="ident">back_button_callback</span></span>(<span>self, _)</span>
+<dt id="odyssey.ui.voterdetails.DetailScreen.get_blob_texture"><code class="name flex">
+<span>def <span class="ident">get_blob_texture</span></span>(<span>self, blob, flip)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -213,12 +211,21 @@ added.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def back_button_callback(self, _):
-    self.manager.current = &#34;login&#34;</code></pre>
+<pre><code class="python">def get_blob_texture(self, blob, flip):
+    bgr_img = cv2.imdecode(np.frombuffer(
+        blob, np.uint8), cv2.IMREAD_COLOR)
+    rgb_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2RGB)
+    if flip:
+        rgb_img = cv2.flip(rgb_img, 0)
+    texture = Texture.create(
+        size=(rgb_img.shape[1], rgb_img.shape[0]), colorfmt=&#39;rgb&#39;)
+    texture.blit_buffer(rgb_img.tobytes(),
+                        colorfmt=&#39;rgb&#39;, bufferfmt=&#39;ubyte&#39;)
+    return texture</code></pre>
 </details>
 </dd>
-<dt id="odyssey.ui.voterdetails.DetailScreen.on_enter"><code class="name flex">
-<span>def <span class="ident">on_enter</span></span>(<span>self, *args)</span>
+<dt id="odyssey.ui.voterdetails.DetailScreen.on_pre_enter"><code class="name flex">
+<span>def <span class="ident">on_pre_enter</span></span>(<span>self, *args)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -226,22 +233,20 @@ added.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def on_enter(self, *args):
-    self.web_camera.play = True</code></pre>
-</details>
-</dd>
-<dt id="odyssey.ui.voterdetails.DetailScreen.on_leave"><code class="name flex">
-<span>def <span class="ident">on_leave</span></span>(<span>self, *args)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def on_leave(self, *args):
-    print(&#34;debug&#34;)
-    self.web_camera.play = False</code></pre>
+<pre><code class="python">def on_pre_enter(self, *args):
+    self.data = MDApp.get_running_app().data
+    user = fetch_user(int(self.data[&#34;uuid&#34;]))
+    self.ids.user_name.text = user.name
+    self.ids.address.text = user.address
+    self.ids.email.text = user.email
+    self.ids.contact_ph.text = str(user.contact_ph)
+    self.ids.mother_name.text = user.mother_name
+    self.ids.father_name.text = user.father_name
+    self.ids.uuid.text = str(user.aadhar_number)
+    self.ids.dob.text = str(user.dob)
+    self.ids.face_data.texture = self.get_blob_texture(user.face, True)
+    self.ids.finger_data.texture = self.get_blob_texture(
+        user.fingerprint, False)</code></pre>
 </details>
 </dd>
 </dl>
@@ -264,10 +269,17 @@ added.</p>
 <ul>
 <li>
 <h4><code><a title="odyssey.ui.voterdetails.DetailScreen" href="#odyssey.ui.voterdetails.DetailScreen">DetailScreen</a></code></h4>
-<ul class="">
-<li><code><a title="odyssey.ui.voterdetails.DetailScreen.back_button_callback" href="#odyssey.ui.voterdetails.DetailScreen.back_button_callback">back_button_callback</a></code></li>
-<li><code><a title="odyssey.ui.voterdetails.DetailScreen.on_enter" href="#odyssey.ui.voterdetails.DetailScreen.on_enter">on_enter</a></code></li>
-<li><code><a title="odyssey.ui.voterdetails.DetailScreen.on_leave" href="#odyssey.ui.voterdetails.DetailScreen.on_leave">on_leave</a></code></li>
+<ul class="two-column">
+<li><code><a title="odyssey.ui.voterdetails.DetailScreen.address" href="#odyssey.ui.voterdetails.DetailScreen.address">address</a></code></li>
+<li><code><a title="odyssey.ui.voterdetails.DetailScreen.contact_ph" href="#odyssey.ui.voterdetails.DetailScreen.contact_ph">contact_ph</a></code></li>
+<li><code><a title="odyssey.ui.voterdetails.DetailScreen.dob" href="#odyssey.ui.voterdetails.DetailScreen.dob">dob</a></code></li>
+<li><code><a title="odyssey.ui.voterdetails.DetailScreen.email" href="#odyssey.ui.voterdetails.DetailScreen.email">email</a></code></li>
+<li><code><a title="odyssey.ui.voterdetails.DetailScreen.father_name" href="#odyssey.ui.voterdetails.DetailScreen.father_name">father_name</a></code></li>
+<li><code><a title="odyssey.ui.voterdetails.DetailScreen.get_blob_texture" href="#odyssey.ui.voterdetails.DetailScreen.get_blob_texture">get_blob_texture</a></code></li>
+<li><code><a title="odyssey.ui.voterdetails.DetailScreen.mother_name" href="#odyssey.ui.voterdetails.DetailScreen.mother_name">mother_name</a></code></li>
+<li><code><a title="odyssey.ui.voterdetails.DetailScreen.on_pre_enter" href="#odyssey.ui.voterdetails.DetailScreen.on_pre_enter">on_pre_enter</a></code></li>
+<li><code><a title="odyssey.ui.voterdetails.DetailScreen.user_name" href="#odyssey.ui.voterdetails.DetailScreen.user_name">user_name</a></code></li>
+<li><code><a title="odyssey.ui.voterdetails.DetailScreen.uuid" href="#odyssey.ui.voterdetails.DetailScreen.uuid">uuid</a></code></li>
 </ul>
 </li>
 </ul>

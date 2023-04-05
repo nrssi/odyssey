@@ -10,7 +10,6 @@ class Citizens(Base):
     __tablename__ = 'citizens'
 
     name = Column(Text, nullable=False)
-    uuid = Column(Integer, primary_key=True)
     address = Column(Text)
     contact_ph = Column(Integer)
     email = Column(Text)
@@ -19,6 +18,7 @@ class Citizens(Base):
     father_name = Column(Text)
     mother_name = Column(Text)
     dob = Column(Text)
+    aadhar_number = Column(Integer, primary_key=True)
 
     candidate = relationship('Candidate', back_populates='citizens')
 
@@ -42,10 +42,9 @@ t_sqlite_sequence = Table(
 class Candidate(Base):
     __tablename__ = 'candidate'
 
-    candidate_id = Column(Integer, primary_key=True)
-    uuid = Column(ForeignKey('citizens.uuid'))
+    id = Column(Integer, primary_key=True)
+    aadhar_number = Column(ForeignKey('citizens.aadhar_number'))
     party_id = Column(ForeignKey('political_parties.party_id'))
-    name = Column(Text)
 
-    party = relationship('PoliticalParties', back_populates='candidate')
     citizens = relationship('Citizens', back_populates='candidate')
+    party = relationship('PoliticalParties', back_populates='candidate')

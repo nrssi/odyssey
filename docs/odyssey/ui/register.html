@@ -27,76 +27,168 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">from kivymd.uix import Screen
-from kivymd.uix.button import MDRectangleFlatButton
-from kivymd.uix.textfield import MDTextField
 from kivy.uix.image import Image
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.gridlayout import MDGridLayout
-from kivy.uix.camera import Camera
-import os
+from ..db_api import register_user
+from ..db_models import Citizens
+import numpy as np
+import cv2
+from kivy.clock import Clock
+from kivy.graphics.texture import Texture
+from ..fingerprint_bindings.pysgfplib import PYSGFPLib
+from ..fingerprint_bindings.sgfdxdevicename import SGFDxDeviceName
+from ..logger import logger
+from ctypes import c_int, byref, c_char
+
+
+class CameraFeed(Image):
+    def __init__(self, **kwargs):
+        super(CameraFeed, self).__init__(**kwargs)
+
+        self.capture = None
+        self.width, self.height, self.frame = 0, 0, np.zeros((int(0), int(0)))
+        self.is_captured = False
+        self.fps = 30
+        self.fps_clock: Clock = None
+
+    def update(self, dt):
+        ret, frame = self.capture.read()
+        self.frame = frame
+        if ret and not self.is_captured:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            texture = Texture.create(
+                size=(frame.shape[1], frame.shape[0]), colorfmt=&#39;rgb&#39;)
+            frame = cv2.flip(frame, 0)
+            texture.blit_buffer(
+                frame.tobytes(), colorfmt=&#39;rgb&#39;, bufferfmt=&#39;ubyte&#39;)
+            self.texture = texture
+
+    def start(self):
+        logger.info(&#34;Starting the Camera feed&#34;)
+        self.capture = cv2.VideoCapture(0)
+        self.fps_clock = Clock.schedule_interval(self.update, 1.0 / self.fps)
+
+    def stop(self):
+        logger.info(&#34;Stopping the Camera feed&#34;)
+        self.fps_clock.cancel()
+        self.capture.release()
+
+    def get_frame(self):
+        return self.frame
+
+
+class FingerPrint(Image):
+    def __init__(self, **kwargs):
+        super(FingerPrint, self).__init__(**kwargs)
+        self.fingerprint_data = np.zeros((300, 400))
+        self.libobj = PYSGFPLib()
+        self.frame = np.zeros((int(300), int(400)))
+        self.is_loaded = False
+        self.is_captured = False
+        self.image_buffer = None
+        logger.info(&#34;Creating PYSGFPLib context for fingerprint capture&#34;)
+        self.libobj.Create()
+        logger.info(&#34;Initializing PYSGFPLib object for fingerprint capture&#34;)
+        self.libobj.Init(SGFDxDeviceName.SG_DEV_AUTO)
+
+    def start(self):
+        logger.info(&#34;Opening Device : 0 for capuring fingerprint&#34;)
+        logger.info(&#34;Loading drivers for device : 0&#34;)
+        self.libobj.OpenDevice(0)
+        logger.info(
+            &#34;Actuating the device: 0, If this goes fine you should see LED blink&#34;)
+        self.is_loaded = True
+        self.fps_clock = Clock.schedule_interval(self.capture, 1/30)
+
+    def stop(self):
+        logger.info(&#34;Closing the device: 0&#34;)
+        self.libobj.CloseDevice()
+        self.fps_clock.cancel()
+
+    def get_frame(self):
+        return self.frame
+
+    def capture(self, _):
+        if not self.is_captured:
+            cImageWidth = c_int(0)
+            cImageHeight = c_int(0)
+            self.libobj.GetDeviceInfo(
+                byref(cImageWidth), byref(cImageHeight))
+            image_buffer = (c_char*cImageWidth.value*cImageHeight.value)()
+            self.libobj.GetImage(image_buffer)
+            image_buffer = [[ord(b) for b in row] for row in image_buffer]
+            img_array = np.array(image_buffer, dtype=np.uint8)
+            img_array.reshape(cImageWidth.value, cImageHeight.value)
+            img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+            frame = cv2.cvtColor(img_array, cv2.COLOR_BGR2RGB)
+            texture = Texture.create(
+                size=(frame.shape[1], frame.shape[0]), colorfmt=&#39;rgb&#39;)
+            frame = cv2.flip(frame, 0)
+            self.frame = frame
+            texture.blit_buffer(
+                frame.tobytes(), colorfmt=&#39;rgb&#39;, bufferfmt=&#39;ubyte&#39;)
+            self.texture = texture
 
 
 class RegisterScreen(Screen):
-    def __init__(self, **kw):
-        super().__init__(**kw)
-        layout = MDGridLayout(cols=2)
-        layout.spacing = 20
-        layout.padding = [10, 0, 10, 0]
-        # self.add_widget(layout)
-        biom_layout = MDBoxLayout(orientation=&#34;vertical&#34;, pos_hint={
-                                  &#34;center_x&#34;: 1, &#34;center_y&#34;: 1}, spacing=10, padding=[10, 10, 10, 10])
-        details_layout = MDBoxLayout(
-            orientation=&#34;vertical&#34;, spacing=10, padding=[0, 0, 20, 0])
-        self.web_camera = Camera()
-        fingerprint_image = Image(
-            source=&#34;/home/shashank/Pictures/wallpapers/nixos.png&#34;)
-        self.click_button = MDRectangleFlatButton(text=&#34;Capture&#34;, pos_hint={
-            &#34;center_x&#34;: 0.5, &#34;center_y&#34;: 0.5})
-        self.read_button = MDRectangleFlatButton(text=&#34;Read&#34;, pos_hint={
-            &#34;center_x&#34;: 0.5, &#34;center_y&#34;: 0.5})
-        biom_layout.add_widget(self.web_camera)
-        biom_layout.add_widget(self.click_button)
-        biom_layout.add_widget(fingerprint_image)
-        biom_layout.add_widget(self.read_button)
-
-        register_gif_path = os.environ[&#34;VP_ROOT_DIR&#34;] + \
-            &#34;/assets/UI/register.gif&#34;
-        self.registration_anim = Image(
-            source=register_gif_path, anim_delay=0.04)
-        name_input = MDTextField(hint_text=&#34;name&#34;, mode=&#34;rectangle&#34;)
-        self.address_input = MDTextField(hint_text=&#34;address&#34;, mode=&#34;rectangle&#34;)
-        self.father_name_input = MDTextField(
-            hint_text=&#34;father&#39;s name&#34;, mode=&#34;rectangle&#34;)
-        self.dob_input = MDTextField(
-            hint_text=&#34;date of birth&#34;, mode=&#34;rectangle&#34;)
-        self.email_input = MDTextField(hint_text=&#34;email&#34;, mode=&#34;rectangle&#34;)
-        self.contact_ph_input = MDTextField(
-            hint_text=&#34;contact number&#34;, mode=&#34;rectangle&#34;)
-        self.register_button = MDRectangleFlatButton(
-            text=&#34;Register&#34;, size_hint={1, None})
-        self.back_button = MDRectangleFlatButton(
-            text=&#34;Back&#34;, on_press=self.back_button_callback, size_hint={1, None})
-        details_layout.add_widget(self.registration_anim)
-        details_layout.add_widget(name_input)
-        details_layout.add_widget(self.address_input)
-        details_layout.add_widget(self.father_name_input)
-        details_layout.add_widget(self.dob_input)
-        details_layout.add_widget(self.email_input)
-        details_layout.add_widget(self.back_button)
-        details_layout.add_widget(self.register_button)
-        layout.add_widget(biom_layout)
-        layout.add_widget(details_layout)
-        self.add_widget(layout)
-
     def on_enter(self, *args):
-        self.web_camera.play = True
+        _ = args  # Assigning this to remove the warnings
+        self.ids.web_camera.start()
+        self.ids.fingerprint_image.start()
 
     def on_leave(self, *args):
-        print(&#34;debug&#34;)
-        self.web_camera.play = False
+        _ = args  # Assigning this to remove the warnings
+        self.ids.web_camera.stop()
+        self.ids.fingerprint_image.stop()
+        self.ids.web_camera.is_captured = False
+        self.ids.fingerprint_image.is_captured = False
+        self.ids.capture_button.text = &#34;Capture&#34;
+        self.ids.read_button.text = &#34;Capture&#34;
 
-    def back_button_callback(self, _):
-        self.manager.current = &#34;login&#34;</code></pre>
+    def back_button_callback(self):
+        self.manager.current = &#34;login&#34;
+
+    def register_button_callback(self):
+        name = self.ids.name.text
+        address = self.ids.address.text
+        father_name = self.ids.father_name.text
+        dob = self.ids.dob.text
+        email = self.ids.email.text
+        mother_name = self.ids.mother_name.text
+        aadhar_number = self.ids.aadhar_number.text
+        contact_ph = self.ids.contact_ph.text
+        _, face_blob = cv2.imencode(&#34;.jpg&#34;, self.face_frame)
+        _, finger_blob = cv2.imencode(&#34;.tif&#34;, self.finger_frame)
+        data = {&#34;name&#34;: name, &#34;address&#34;: address,
+                &#34;father_name&#34;: father_name, &#34;dob&#34;: dob,
+                &#34;mother_name&#34;: mother_name, &#34;contact_ph&#34;: contact_ph,
+                &#34;email&#34;: email, &#34;face&#34;: face_blob,
+                &#34;fingerprint&#34;: finger_blob, &#34;aadhar_number&#34;: aadhar_number}
+        logger.debug(data)
+        citizen = Citizens(**data)
+        register_user(citizen)
+        self.ids.web_camera.stop()
+        self.ids.fingerprint_image.stop()
+        self.manager.current = &#34;login&#34;
+
+    def capture_callback(self):
+        self.ids.web_camera.is_captured = not self.ids.web_camera.is_captured
+        if self.ids.web_camera.is_captured:
+            self.face_frame = self.ids.web_camera.get_frame()
+            self.ids.web_camera.stop()
+            self.ids.capture_button.text = &#34;Re capture&#34;
+        else:
+            self.ids.web_camera.start()
+            self.ids.capture_button.text = &#34;Capture&#34;
+
+    def fingerprint_callback(self):
+        self.ids.fingerprint_image.is_captured = not self.ids.fingerprint_image.is_captured
+        if self.ids.fingerprint_image.is_captured:
+            self.finger_frame = self.ids.fingerprint_image.get_frame()
+            self.ids.fingerprint_image.stop()
+            self.ids.read_button.text = &#34;Re capture&#34;
+        else:
+            self.ids.fingerprint_image.start()
+            self.ids.read_button.text = &#34;Capture&#34;</code></pre>
 </details>
 </section>
 <section>
@@ -108,6 +200,280 @@ class RegisterScreen(Screen):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="odyssey.ui.register.CameraFeed"><code class="flex name class">
+<span>class <span class="ident">CameraFeed</span></span>
+<span>(</span><span>**kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Image class, see module documentation for more information.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CameraFeed(Image):
+    def __init__(self, **kwargs):
+        super(CameraFeed, self).__init__(**kwargs)
+
+        self.capture = None
+        self.width, self.height, self.frame = 0, 0, np.zeros((int(0), int(0)))
+        self.is_captured = False
+        self.fps = 30
+        self.fps_clock: Clock = None
+
+    def update(self, dt):
+        ret, frame = self.capture.read()
+        self.frame = frame
+        if ret and not self.is_captured:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            texture = Texture.create(
+                size=(frame.shape[1], frame.shape[0]), colorfmt=&#39;rgb&#39;)
+            frame = cv2.flip(frame, 0)
+            texture.blit_buffer(
+                frame.tobytes(), colorfmt=&#39;rgb&#39;, bufferfmt=&#39;ubyte&#39;)
+            self.texture = texture
+
+    def start(self):
+        logger.info(&#34;Starting the Camera feed&#34;)
+        self.capture = cv2.VideoCapture(0)
+        self.fps_clock = Clock.schedule_interval(self.update, 1.0 / self.fps)
+
+    def stop(self):
+        logger.info(&#34;Stopping the Camera feed&#34;)
+        self.fps_clock.cancel()
+        self.capture.release()
+
+    def get_frame(self):
+        return self.frame</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>kivy.uix.image.Image</li>
+<li>kivy.uix.widget.Widget</li>
+<li>kivy.uix.widget.WidgetBase</li>
+<li>kivy._event.EventDispatcher</li>
+<li>kivy._event.ObjectWithUid</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="odyssey.ui.register.CameraFeed.get_frame"><code class="name flex">
+<span>def <span class="ident">get_frame</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_frame(self):
+    return self.frame</code></pre>
+</details>
+</dd>
+<dt id="odyssey.ui.register.CameraFeed.start"><code class="name flex">
+<span>def <span class="ident">start</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def start(self):
+    logger.info(&#34;Starting the Camera feed&#34;)
+    self.capture = cv2.VideoCapture(0)
+    self.fps_clock = Clock.schedule_interval(self.update, 1.0 / self.fps)</code></pre>
+</details>
+</dd>
+<dt id="odyssey.ui.register.CameraFeed.stop"><code class="name flex">
+<span>def <span class="ident">stop</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def stop(self):
+    logger.info(&#34;Stopping the Camera feed&#34;)
+    self.fps_clock.cancel()
+    self.capture.release()</code></pre>
+</details>
+</dd>
+<dt id="odyssey.ui.register.CameraFeed.update"><code class="name flex">
+<span>def <span class="ident">update</span></span>(<span>self, dt)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update(self, dt):
+    ret, frame = self.capture.read()
+    self.frame = frame
+    if ret and not self.is_captured:
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        texture = Texture.create(
+            size=(frame.shape[1], frame.shape[0]), colorfmt=&#39;rgb&#39;)
+        frame = cv2.flip(frame, 0)
+        texture.blit_buffer(
+            frame.tobytes(), colorfmt=&#39;rgb&#39;, bufferfmt=&#39;ubyte&#39;)
+        self.texture = texture</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="odyssey.ui.register.FingerPrint"><code class="flex name class">
+<span>class <span class="ident">FingerPrint</span></span>
+<span>(</span><span>**kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Image class, see module documentation for more information.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FingerPrint(Image):
+    def __init__(self, **kwargs):
+        super(FingerPrint, self).__init__(**kwargs)
+        self.fingerprint_data = np.zeros((300, 400))
+        self.libobj = PYSGFPLib()
+        self.frame = np.zeros((int(300), int(400)))
+        self.is_loaded = False
+        self.is_captured = False
+        self.image_buffer = None
+        logger.info(&#34;Creating PYSGFPLib context for fingerprint capture&#34;)
+        self.libobj.Create()
+        logger.info(&#34;Initializing PYSGFPLib object for fingerprint capture&#34;)
+        self.libobj.Init(SGFDxDeviceName.SG_DEV_AUTO)
+
+    def start(self):
+        logger.info(&#34;Opening Device : 0 for capuring fingerprint&#34;)
+        logger.info(&#34;Loading drivers for device : 0&#34;)
+        self.libobj.OpenDevice(0)
+        logger.info(
+            &#34;Actuating the device: 0, If this goes fine you should see LED blink&#34;)
+        self.is_loaded = True
+        self.fps_clock = Clock.schedule_interval(self.capture, 1/30)
+
+    def stop(self):
+        logger.info(&#34;Closing the device: 0&#34;)
+        self.libobj.CloseDevice()
+        self.fps_clock.cancel()
+
+    def get_frame(self):
+        return self.frame
+
+    def capture(self, _):
+        if not self.is_captured:
+            cImageWidth = c_int(0)
+            cImageHeight = c_int(0)
+            self.libobj.GetDeviceInfo(
+                byref(cImageWidth), byref(cImageHeight))
+            image_buffer = (c_char*cImageWidth.value*cImageHeight.value)()
+            self.libobj.GetImage(image_buffer)
+            image_buffer = [[ord(b) for b in row] for row in image_buffer]
+            img_array = np.array(image_buffer, dtype=np.uint8)
+            img_array.reshape(cImageWidth.value, cImageHeight.value)
+            img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+            frame = cv2.cvtColor(img_array, cv2.COLOR_BGR2RGB)
+            texture = Texture.create(
+                size=(frame.shape[1], frame.shape[0]), colorfmt=&#39;rgb&#39;)
+            frame = cv2.flip(frame, 0)
+            self.frame = frame
+            texture.blit_buffer(
+                frame.tobytes(), colorfmt=&#39;rgb&#39;, bufferfmt=&#39;ubyte&#39;)
+            self.texture = texture</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>kivy.uix.image.Image</li>
+<li>kivy.uix.widget.Widget</li>
+<li>kivy.uix.widget.WidgetBase</li>
+<li>kivy._event.EventDispatcher</li>
+<li>kivy._event.ObjectWithUid</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="odyssey.ui.register.FingerPrint.capture"><code class="name flex">
+<span>def <span class="ident">capture</span></span>(<span>self, _)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def capture(self, _):
+    if not self.is_captured:
+        cImageWidth = c_int(0)
+        cImageHeight = c_int(0)
+        self.libobj.GetDeviceInfo(
+            byref(cImageWidth), byref(cImageHeight))
+        image_buffer = (c_char*cImageWidth.value*cImageHeight.value)()
+        self.libobj.GetImage(image_buffer)
+        image_buffer = [[ord(b) for b in row] for row in image_buffer]
+        img_array = np.array(image_buffer, dtype=np.uint8)
+        img_array.reshape(cImageWidth.value, cImageHeight.value)
+        img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+        frame = cv2.cvtColor(img_array, cv2.COLOR_BGR2RGB)
+        texture = Texture.create(
+            size=(frame.shape[1], frame.shape[0]), colorfmt=&#39;rgb&#39;)
+        frame = cv2.flip(frame, 0)
+        self.frame = frame
+        texture.blit_buffer(
+            frame.tobytes(), colorfmt=&#39;rgb&#39;, bufferfmt=&#39;ubyte&#39;)
+        self.texture = texture</code></pre>
+</details>
+</dd>
+<dt id="odyssey.ui.register.FingerPrint.get_frame"><code class="name flex">
+<span>def <span class="ident">get_frame</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_frame(self):
+    return self.frame</code></pre>
+</details>
+</dd>
+<dt id="odyssey.ui.register.FingerPrint.start"><code class="name flex">
+<span>def <span class="ident">start</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def start(self):
+    logger.info(&#34;Opening Device : 0 for capuring fingerprint&#34;)
+    logger.info(&#34;Loading drivers for device : 0&#34;)
+    self.libobj.OpenDevice(0)
+    logger.info(
+        &#34;Actuating the device: 0, If this goes fine you should see LED blink&#34;)
+    self.is_loaded = True
+    self.fps_clock = Clock.schedule_interval(self.capture, 1/30)</code></pre>
+</details>
+</dd>
+<dt id="odyssey.ui.register.FingerPrint.stop"><code class="name flex">
+<span>def <span class="ident">stop</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def stop(self):
+    logger.info(&#34;Closing the device: 0&#34;)
+    self.libobj.CloseDevice()
+    self.fps_clock.cancel()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="odyssey.ui.register.RegisterScreen"><code class="flex name class">
 <span>class <span class="ident">RegisterScreen</span></span>
 <span>(</span><span>**kw)</span>
@@ -138,66 +504,65 @@ added.</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class RegisterScreen(Screen):
-    def __init__(self, **kw):
-        super().__init__(**kw)
-        layout = MDGridLayout(cols=2)
-        layout.spacing = 20
-        layout.padding = [10, 0, 10, 0]
-        # self.add_widget(layout)
-        biom_layout = MDBoxLayout(orientation=&#34;vertical&#34;, pos_hint={
-                                  &#34;center_x&#34;: 1, &#34;center_y&#34;: 1}, spacing=10, padding=[10, 10, 10, 10])
-        details_layout = MDBoxLayout(
-            orientation=&#34;vertical&#34;, spacing=10, padding=[0, 0, 20, 0])
-        self.web_camera = Camera()
-        fingerprint_image = Image(
-            source=&#34;/home/shashank/Pictures/wallpapers/nixos.png&#34;)
-        self.click_button = MDRectangleFlatButton(text=&#34;Capture&#34;, pos_hint={
-            &#34;center_x&#34;: 0.5, &#34;center_y&#34;: 0.5})
-        self.read_button = MDRectangleFlatButton(text=&#34;Read&#34;, pos_hint={
-            &#34;center_x&#34;: 0.5, &#34;center_y&#34;: 0.5})
-        biom_layout.add_widget(self.web_camera)
-        biom_layout.add_widget(self.click_button)
-        biom_layout.add_widget(fingerprint_image)
-        biom_layout.add_widget(self.read_button)
-
-        register_gif_path = os.environ[&#34;VP_ROOT_DIR&#34;] + \
-            &#34;/assets/UI/register.gif&#34;
-        self.registration_anim = Image(
-            source=register_gif_path, anim_delay=0.04)
-        name_input = MDTextField(hint_text=&#34;name&#34;, mode=&#34;rectangle&#34;)
-        self.address_input = MDTextField(hint_text=&#34;address&#34;, mode=&#34;rectangle&#34;)
-        self.father_name_input = MDTextField(
-            hint_text=&#34;father&#39;s name&#34;, mode=&#34;rectangle&#34;)
-        self.dob_input = MDTextField(
-            hint_text=&#34;date of birth&#34;, mode=&#34;rectangle&#34;)
-        self.email_input = MDTextField(hint_text=&#34;email&#34;, mode=&#34;rectangle&#34;)
-        self.contact_ph_input = MDTextField(
-            hint_text=&#34;contact number&#34;, mode=&#34;rectangle&#34;)
-        self.register_button = MDRectangleFlatButton(
-            text=&#34;Register&#34;, size_hint={1, None})
-        self.back_button = MDRectangleFlatButton(
-            text=&#34;Back&#34;, on_press=self.back_button_callback, size_hint={1, None})
-        details_layout.add_widget(self.registration_anim)
-        details_layout.add_widget(name_input)
-        details_layout.add_widget(self.address_input)
-        details_layout.add_widget(self.father_name_input)
-        details_layout.add_widget(self.dob_input)
-        details_layout.add_widget(self.email_input)
-        details_layout.add_widget(self.back_button)
-        details_layout.add_widget(self.register_button)
-        layout.add_widget(biom_layout)
-        layout.add_widget(details_layout)
-        self.add_widget(layout)
-
     def on_enter(self, *args):
-        self.web_camera.play = True
+        _ = args  # Assigning this to remove the warnings
+        self.ids.web_camera.start()
+        self.ids.fingerprint_image.start()
 
     def on_leave(self, *args):
-        print(&#34;debug&#34;)
-        self.web_camera.play = False
+        _ = args  # Assigning this to remove the warnings
+        self.ids.web_camera.stop()
+        self.ids.fingerprint_image.stop()
+        self.ids.web_camera.is_captured = False
+        self.ids.fingerprint_image.is_captured = False
+        self.ids.capture_button.text = &#34;Capture&#34;
+        self.ids.read_button.text = &#34;Capture&#34;
 
-    def back_button_callback(self, _):
-        self.manager.current = &#34;login&#34;</code></pre>
+    def back_button_callback(self):
+        self.manager.current = &#34;login&#34;
+
+    def register_button_callback(self):
+        name = self.ids.name.text
+        address = self.ids.address.text
+        father_name = self.ids.father_name.text
+        dob = self.ids.dob.text
+        email = self.ids.email.text
+        mother_name = self.ids.mother_name.text
+        aadhar_number = self.ids.aadhar_number.text
+        contact_ph = self.ids.contact_ph.text
+        _, face_blob = cv2.imencode(&#34;.jpg&#34;, self.face_frame)
+        _, finger_blob = cv2.imencode(&#34;.tif&#34;, self.finger_frame)
+        data = {&#34;name&#34;: name, &#34;address&#34;: address,
+                &#34;father_name&#34;: father_name, &#34;dob&#34;: dob,
+                &#34;mother_name&#34;: mother_name, &#34;contact_ph&#34;: contact_ph,
+                &#34;email&#34;: email, &#34;face&#34;: face_blob,
+                &#34;fingerprint&#34;: finger_blob, &#34;aadhar_number&#34;: aadhar_number}
+        logger.debug(data)
+        citizen = Citizens(**data)
+        register_user(citizen)
+        self.ids.web_camera.stop()
+        self.ids.fingerprint_image.stop()
+        self.manager.current = &#34;login&#34;
+
+    def capture_callback(self):
+        self.ids.web_camera.is_captured = not self.ids.web_camera.is_captured
+        if self.ids.web_camera.is_captured:
+            self.face_frame = self.ids.web_camera.get_frame()
+            self.ids.web_camera.stop()
+            self.ids.capture_button.text = &#34;Re capture&#34;
+        else:
+            self.ids.web_camera.start()
+            self.ids.capture_button.text = &#34;Capture&#34;
+
+    def fingerprint_callback(self):
+        self.ids.fingerprint_image.is_captured = not self.ids.fingerprint_image.is_captured
+        if self.ids.fingerprint_image.is_captured:
+            self.finger_frame = self.ids.fingerprint_image.get_frame()
+            self.ids.fingerprint_image.stop()
+            self.ids.read_button.text = &#34;Re capture&#34;
+        else:
+            self.ids.fingerprint_image.start()
+            self.ids.read_button.text = &#34;Capture&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -213,7 +578,7 @@ added.</p>
 <h3>Methods</h3>
 <dl>
 <dt id="odyssey.ui.register.RegisterScreen.back_button_callback"><code class="name flex">
-<span>def <span class="ident">back_button_callback</span></span>(<span>self, _)</span>
+<span>def <span class="ident">back_button_callback</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -221,8 +586,48 @@ added.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def back_button_callback(self, _):
+<pre><code class="python">def back_button_callback(self):
     self.manager.current = &#34;login&#34;</code></pre>
+</details>
+</dd>
+<dt id="odyssey.ui.register.RegisterScreen.capture_callback"><code class="name flex">
+<span>def <span class="ident">capture_callback</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def capture_callback(self):
+    self.ids.web_camera.is_captured = not self.ids.web_camera.is_captured
+    if self.ids.web_camera.is_captured:
+        self.face_frame = self.ids.web_camera.get_frame()
+        self.ids.web_camera.stop()
+        self.ids.capture_button.text = &#34;Re capture&#34;
+    else:
+        self.ids.web_camera.start()
+        self.ids.capture_button.text = &#34;Capture&#34;</code></pre>
+</details>
+</dd>
+<dt id="odyssey.ui.register.RegisterScreen.fingerprint_callback"><code class="name flex">
+<span>def <span class="ident">fingerprint_callback</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fingerprint_callback(self):
+    self.ids.fingerprint_image.is_captured = not self.ids.fingerprint_image.is_captured
+    if self.ids.fingerprint_image.is_captured:
+        self.finger_frame = self.ids.fingerprint_image.get_frame()
+        self.ids.fingerprint_image.stop()
+        self.ids.read_button.text = &#34;Re capture&#34;
+    else:
+        self.ids.fingerprint_image.start()
+        self.ids.read_button.text = &#34;Capture&#34;</code></pre>
 </details>
 </dd>
 <dt id="odyssey.ui.register.RegisterScreen.on_enter"><code class="name flex">
@@ -235,7 +640,9 @@ added.</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def on_enter(self, *args):
-    self.web_camera.play = True</code></pre>
+    _ = args  # Assigning this to remove the warnings
+    self.ids.web_camera.start()
+    self.ids.fingerprint_image.start()</code></pre>
 </details>
 </dd>
 <dt id="odyssey.ui.register.RegisterScreen.on_leave"><code class="name flex">
@@ -248,8 +655,46 @@ added.</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def on_leave(self, *args):
-    print(&#34;debug&#34;)
-    self.web_camera.play = False</code></pre>
+    _ = args  # Assigning this to remove the warnings
+    self.ids.web_camera.stop()
+    self.ids.fingerprint_image.stop()
+    self.ids.web_camera.is_captured = False
+    self.ids.fingerprint_image.is_captured = False
+    self.ids.capture_button.text = &#34;Capture&#34;
+    self.ids.read_button.text = &#34;Capture&#34;</code></pre>
+</details>
+</dd>
+<dt id="odyssey.ui.register.RegisterScreen.register_button_callback"><code class="name flex">
+<span>def <span class="ident">register_button_callback</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def register_button_callback(self):
+    name = self.ids.name.text
+    address = self.ids.address.text
+    father_name = self.ids.father_name.text
+    dob = self.ids.dob.text
+    email = self.ids.email.text
+    mother_name = self.ids.mother_name.text
+    aadhar_number = self.ids.aadhar_number.text
+    contact_ph = self.ids.contact_ph.text
+    _, face_blob = cv2.imencode(&#34;.jpg&#34;, self.face_frame)
+    _, finger_blob = cv2.imencode(&#34;.tif&#34;, self.finger_frame)
+    data = {&#34;name&#34;: name, &#34;address&#34;: address,
+            &#34;father_name&#34;: father_name, &#34;dob&#34;: dob,
+            &#34;mother_name&#34;: mother_name, &#34;contact_ph&#34;: contact_ph,
+            &#34;email&#34;: email, &#34;face&#34;: face_blob,
+            &#34;fingerprint&#34;: finger_blob, &#34;aadhar_number&#34;: aadhar_number}
+    logger.debug(data)
+    citizen = Citizens(**data)
+    register_user(citizen)
+    self.ids.web_camera.stop()
+    self.ids.fingerprint_image.stop()
+    self.manager.current = &#34;login&#34;</code></pre>
 </details>
 </dd>
 </dl>
@@ -271,11 +716,32 @@ added.</p>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
+<h4><code><a title="odyssey.ui.register.CameraFeed" href="#odyssey.ui.register.CameraFeed">CameraFeed</a></code></h4>
+<ul class="">
+<li><code><a title="odyssey.ui.register.CameraFeed.get_frame" href="#odyssey.ui.register.CameraFeed.get_frame">get_frame</a></code></li>
+<li><code><a title="odyssey.ui.register.CameraFeed.start" href="#odyssey.ui.register.CameraFeed.start">start</a></code></li>
+<li><code><a title="odyssey.ui.register.CameraFeed.stop" href="#odyssey.ui.register.CameraFeed.stop">stop</a></code></li>
+<li><code><a title="odyssey.ui.register.CameraFeed.update" href="#odyssey.ui.register.CameraFeed.update">update</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="odyssey.ui.register.FingerPrint" href="#odyssey.ui.register.FingerPrint">FingerPrint</a></code></h4>
+<ul class="">
+<li><code><a title="odyssey.ui.register.FingerPrint.capture" href="#odyssey.ui.register.FingerPrint.capture">capture</a></code></li>
+<li><code><a title="odyssey.ui.register.FingerPrint.get_frame" href="#odyssey.ui.register.FingerPrint.get_frame">get_frame</a></code></li>
+<li><code><a title="odyssey.ui.register.FingerPrint.start" href="#odyssey.ui.register.FingerPrint.start">start</a></code></li>
+<li><code><a title="odyssey.ui.register.FingerPrint.stop" href="#odyssey.ui.register.FingerPrint.stop">stop</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="odyssey.ui.register.RegisterScreen" href="#odyssey.ui.register.RegisterScreen">RegisterScreen</a></code></h4>
 <ul class="">
 <li><code><a title="odyssey.ui.register.RegisterScreen.back_button_callback" href="#odyssey.ui.register.RegisterScreen.back_button_callback">back_button_callback</a></code></li>
+<li><code><a title="odyssey.ui.register.RegisterScreen.capture_callback" href="#odyssey.ui.register.RegisterScreen.capture_callback">capture_callback</a></code></li>
+<li><code><a title="odyssey.ui.register.RegisterScreen.fingerprint_callback" href="#odyssey.ui.register.RegisterScreen.fingerprint_callback">fingerprint_callback</a></code></li>
 <li><code><a title="odyssey.ui.register.RegisterScreen.on_enter" href="#odyssey.ui.register.RegisterScreen.on_enter">on_enter</a></code></li>
 <li><code><a title="odyssey.ui.register.RegisterScreen.on_leave" href="#odyssey.ui.register.RegisterScreen.on_leave">on_leave</a></code></li>
+<li><code><a title="odyssey.ui.register.RegisterScreen.register_button_callback" href="#odyssey.ui.register.RegisterScreen.register_button_callback">register_button_callback</a></code></li>
 </ul>
 </li>
 </ul>
