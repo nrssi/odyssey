@@ -1,52 +1,6 @@
-<CustomCard>:
-        radius: 24
-        box_radius: [0, 0, 24, 24]
-        lines: 2
-        pos_hint: {"center_x": .5, "center_y": .5}
-        size_hint: None, None
-        size: "320dp", "320dp"
-        on_release:
-        MDCheckbox:
-                id:heart
-                group:"candidate"
-                size_hint:(None, None)
-                size:(50, 50)
-                pos_hint: {"center_y": .5, "left":1}
-                active_color:"#ffff00"
-                inactive_color:"#234aaa"
-
-        TwoLineListItem:
-                text: "[color=#ffffff][b]Candidate Name[/b][/color]"
-                secondary_text: "[color=#808080][b]ID[/b][/color]"
-                pos_hint: {"center_y": .5, "left":1}
-                _no_ripple_effect: True
 <VoteScreen>:
-        MDGridLayout:
-                cols:2
-                size_hint_y:None
-                spacing:10
-                padding:10
-                height:1000
-                CustomCard:
-                        source:"/home/shashank/NRSSI/odyssey/assets/UI/images/MESSI.jpg"
-                        on_release:self.ids.heart.active = not self.ids.heart.active;root.manager.current="thanks"
-                CustomCard:
-                        source:"/home/shashank/NRSSI/odyssey/assets/UI/images/MESSI.jpg"
-                        on_release:self.ids.heart.active = not self.ids.heart.active;root.manager.current="thanks"
-                        on_release:self.ids.heart.active = not self.ids.heart.active
-                CustomCard:
-                        source:"/home/shashank/NRSSI/odyssey/assets/UI/images/MESSI.jpg"
-                        on_release:self.ids.heart.active = not self.ids.heart.active;root.manager.current="thanks"
-                CustomCard:
-                        source:"/home/shashank/NRSSI/odyssey/assets/UI/images/MESSI.jpg"
-                        on_release:self.ids.heart.active = not self.ids.heart.active;root.manager.current="thanks"
-                        on_release:self.ids.heart.active = not self.ids.heart.active
-                CustomCard:
-                        source:"/home/shashank/NRSSI/odyssey/assets/UI/images/MESSI.jpg"
-                        on_release:self.ids.heart.active = not self.ids.heart.active;root.manager.current="thanks"
-                CustomCard:
-                        on_release:self.ids.heart.active = not self.ids.heart.active;root.manager.current="thanks"
-                        source:"/home/shashank/NRSSI/odyssey/assets/UI/images/MESSI.jpg"
-                MDFloatingActionButton:
-                        icon:"left-arrow"
+        MDScrollView:
+        MDBoxLayout:
+                id:candidate_table
+                orientation:"vertical"
 

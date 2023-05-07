@@ -119,16 +119,6 @@ class BlockChain:
         else:
             return False
 
-    def get_values(self) -> Dict:
-        value_count = {}
-        for block in self.chain:
-            for _, v in block.data:
-                if v in value_count:
-                    value_count[v] += 1
-                else:
-                    value_count[v] = 0
-        return value_count
-
     # returns true or false based on the state of blockchain
     # True if unaltered and not corrupted
     # False if altered or corrupted
@@ -147,6 +137,15 @@ class BlockChain:
         with open(BLOCKCHAIN_STORE, 'wb') as f:
             pickle.dump(self.chain, f)
 
+    def get_votes(self) -> Dict[str, str]:
+        votes = {}
+        for block in self.chain[1:]:
+            for voter_id, candidate_id in block.get_data().items():
+                if candidate_id not in votes:
+                    votes[candidate_id] = 0
+                votes[candidate_id] += 1
+        return votes
     # use this for DEBUG only
+
     def __repr__(self) -> str:
         return f"{self.__dict__}"

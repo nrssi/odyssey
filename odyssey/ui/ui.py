@@ -1,9 +1,9 @@
 from kivymd.app import MDApp
 from kivy.uix.screenmanager import ScreenManager
 import os
+
+
 from .voterdetails import DetailScreen
-
-
 from .login import WelcomeScreen
 from .register import RegisterScreen
 from .authenticate import AuthScreen

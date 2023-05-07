@@ -62,12 +62,14 @@ def fetch_user(aadhar_number: int) -> Citizens | None:
         return None
 
 
-def fetch_candidate(id: int) -> Candidate | None:
+def fetch_candidates() -> Citizens | None:
     db = SessionLocal()
     try:
-        user = db.query(Candidate).filter(Candidate.id == id).first()
-        return user
+        candiate = db.query(Candidate)
+        users = db.query(Citizens).filter(
+            Citizens.aadhar_number == Candidate.aadhar_number).all()
+        return users
     except Exception as e:
         logger.error(
-            f"Citizen with ID {id} doesn't exist, Additional info : {e}")
+            f"Failed to fetch information about candidates, Additional info : {e}")
         return None
