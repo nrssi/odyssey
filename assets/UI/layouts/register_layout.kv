@@ -15,7 +15,9 @@
           radius:[30, 30,30, 30]
         MDRaisedButton:
           id:capture_button
+          md_bg_color:"#8ca9f5"
           text:"Capture"
+          elevation:0
           on_press:root.capture_callback()
           size_hint:(None, None)
           pos_hint:{"center_x":0.5, "center_y":0.5}
@@ -28,6 +30,8 @@
         MDRaisedButton:
           id:read_button
           text:"Capture"
+          elevation:0
+          md_bg_color:"#8ca9f5"
           size_hint:(None, None)
           on_press:root.fingerprint_callback()
           pos_hint:{"center_x":0.5, "center_y":0.5}
@@ -50,7 +54,7 @@
           halign:"center"
           font_size:"40sp"
         MDLabel:
-          text:"Registration for [color=#FE6A68]New Voters[/color]"
+          text:"Registration for New Voters"
           markup:True
           halign:"center"
           font_size:"18sp"
@@ -113,6 +117,8 @@
             MDRaisedButton:
               size_hint:(0.5, None)
               width:400
+              elevation:0
+              md_bg_color:"#8ca9f5"
               height:390
               text:"Back"
               on_release:root.back_button_callback()
@@ -121,7 +127,9 @@
             anchor_x:"right"
             MDRaisedButton:
               size_hint:(0.5, None)
+              elevation:0
               width:400
+              md_bg_color:"#8ca9f5"
               height:390
               on_release:root.register_button_callback()
               text:"Proceed"

@@ -1,0 +1,28 @@
+<ThankYouScreen>:
+  MDCard:
+    pos_hint:{"center_x":0.5, "center_y":0.5}
+    MDLabel:
+      text:"Thank You"
+      font_size:"40sp"
+      halign:"center"
+      valign:"center"
+<SplashScreen>:
+  MDCard:
+    orientation:"vertical"
+    padding:10
+    size_hint:(None, None)
+    width:400
+    height:400
+    pos_hint:{"center_x":0.5, "center_y":0.5}
+    Image:
+      source:'/home/shashank/Downloads/loading.gif'
+      anim_delay:0.03
+    MDLabel:
+      text:"Loading..."
+      halign:"center"
+    MDProgressBar:
+      id:bar
+      max:6
+      value:0
+      color:"#8ca9f5"
+      size_hint:(1, None)

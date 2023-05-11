@@ -32,8 +32,6 @@ class DetailScreen(Screen):
         self.ids.uuid.text = str(user.aadhar_number)
         self.ids.dob.text = str(user.dob)
         self.ids.face_data.texture = self.get_blob_texture(user.face, True)
-        self.ids.finger_data.texture = self.get_blob_texture(
-            user.fingerprint, False)
 
     def get_blob_texture(self, blob, flip):
         bgr_img = cv2.imdecode(np.frombuffer(

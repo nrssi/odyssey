@@ -1,18 +1,4 @@
 # welcome_screen.kv
-<QuotesCarousel>:
-  FitImage:
-    radius:[30, 30, 30, 30]
-    source:"/home/shashank/NRSSI/odyssey/assets/UI/images/quote_3.png"
-    keep_ratio:False
-  FitImage:
-    radius:[30, 30, 30, 30]
-    source:"/home/shashank/NRSSI/odyssey/assets/UI/images/quote_1.png"
-    keep_ratio:False
-  FitImage:
-    radius:[30, 30, 30, 30]
-    source:"/home/shashank/NRSSI/odyssey/assets/UI/images/quote_2.png"
-    keep_ratio:False
-    
 <WelcomeScreen>:
   MDGridLayout:
     cols:2
@@ -20,11 +6,9 @@
     spacing:10
     MDCard:
       radius:[30, 30,0, 0]
-      QuotesCarousel:
-        radius:[30, 30,30, 30]
-        loop:True
-        auto_slide:True
-        direction:"right"
+      Image:
+        source:"/home/shashank/Downloads/96757-genio-welcome.gif"
+        anim_delay:0.03
     MDRelativeLayout:
       pos_hint:{"center_x":0.5, "center_y":0.5}
       padding:[10, 10, 10, 10]
@@ -38,7 +22,7 @@
         pos_hint:{"center_x":0.5, "center_y":0.5}
         spacing:10
         MDLabel:
-          text:"Hello, Welcome!"
+          text:"Welcome!"
           halign:"center"
           font_size:"24sp"
         MDTextField:
@@ -50,11 +34,12 @@
           size_hint:(1, None)
           padding:[0, 0, 0, 0]
           MDLabel:
-            text:"New User? [u][color=#52ACEB][ref='']Register[/ref][/color][/u]"
+            text:"New User? [u][color=#3f6ad8][ref='']Register[/ref][/color][/u]"
             on_ref_press:root.new_user_callback()
             markup:True
           MDRaisedButton:
             elevation:1
+            md_bg_color:"#8ca9f5"
             pos_hint:{"center_x":0.5, "center_y":0.5}
             text:"Proceed"
             on_release:root.proceed_button_callback()

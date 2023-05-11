@@ -24,8 +24,9 @@ class MyScrollableList(ScrollView):
         candidates = fetch_candidates()
         data = MDApp.get_running_app().data
         # Add MDCard widgets to the GridLayout
+        i = 0
         for candidate in candidates:  # Replace 20 with the number of items you want to display
-            card = MDCard(size_hint_y=None, height='80dp',
+            card = MDCard(size_hint_y=None, height='180dp',
                           padding=10, spacing=10, orientation='horizontal')
 
             def printlam(x, id=candidate.aadhar_number):
@@ -36,20 +37,21 @@ class MyScrollableList(ScrollView):
                 pass
 
             # Add an AsyncImage widget to the card
-            image = AsyncImage(size_hint_x=None, width='70dp', height='70dp')
+            image = AsyncImage(size_hint_x=None, width='170dp', height='170dp')
             image.texture = self.get_blob_texture(candidate.face, True)
             card.add_widget(image)
             # Add two MDLabel widgets to the card
             name_label = MDLabel(text=candidate.name,
                                  halign='left', valign='middle')
             party_label = MDLabel(
-                text='Representing Party ', halign='left', valign='middle')
+                text=f'Representing Party {i} ', halign='left', valign='middle')
+            i += 1
             card.add_widget(name_label)
             card.add_widget(party_label)
 
             # Add a MDFlatButton to the card
             vote_button = MDFlatButton(
-                text='Vote', size_hint_x=None, width='60dp', pos_hint={'center_y': 0.5}, on_press=printlam)
+                text='Vote', size_hint_x=None, width='60dp', pos_hint={'center_y': 0.5}, on_press=printlam, md_bg_color='#8ca9f5')
             card.add_widget(vote_button)
 
             # Add the MDCard widget to the GridLayout

@@ -6,13 +6,12 @@
       Image:
         id:face_data
         size_hint:(1, 0.5)
-      Image:
-        id:finger_data
-        size_hint:(1, 0.5)
     MDBoxLayout:
+      padding:[0, 0, 10, 0]
       orientation:"vertical"
       MDLabel:
         text:"Details"
+        md_bg_color:"#ffffff"
         font_size:"30sp"
       MDCard:
         MDLabel:
@@ -54,6 +53,31 @@
           text:"Father Name"
         MDLabel:
           id:father_name
-      MDRaisedButton:
-        text:"Proceed"
-        on_release:root.manager.current="auth"
+      MDBoxLayout:
+        orientation:"horizontal"
+        pos_hint:{"center_x":0.5}
+        size_hint:(1, None)
+        md_bg_color:"#ffffff"
+        padding:[0, 0, 0, 0]
+        MDAnchorLayout:
+          size_hint:(1, None)
+          anchor_x:"left"
+          MDRaisedButton:
+            size_hint:(0.5, None)
+            width:400
+            elevation:0
+            md_bg_color:"#8ca9f5"
+            height:390
+            text:"Back"
+            on_release:root.manager.current="login"
+        MDAnchorLayout:
+          size_hint:(1, None)
+          anchor_x:"right"
+          MDRaisedButton:
+            size_hint:(0.5, None)
+            elevation:0
+            width:400
+            md_bg_color:"#8ca9f5"
+            height:390
+            on_release:root.manager.current="auth"
+            text:"Proceed"

@@ -1,17 +1,5 @@
 from kivymd.app import MDApp
 from kivymd.uix.screen import MDScreen
-from kivy.lang import Builder
-from kivymd.uix.carousel import Carousel
-from kivy.clock import Clock
-import os
-
-
-class QuotesCarousel(Carousel):
-
-    def __init__(self, **kwargs):
-        super(QuotesCarousel, self).__init__(**kwargs)
-        self.interval = 3
-        Clock.schedule_interval(self.load_next, self.interval)
 
 
 class WelcomeScreen(MDScreen):
