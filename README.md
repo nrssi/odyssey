@@ -7,6 +7,7 @@ optionally run `pdoc odyssey --html -o docs` to disable automatic opening of bro
 
 
 
+
 ## Development guidelines 
 + use docustrings to document all aspects like classes, functions and global variables(only if necessary).
 + keep abstractions as minimal as possible and try to use autopep8 for formattting.
@@ -20,6 +21,6 @@ optionally run `pdoc odyssey --html -o docs` to disable automatic opening of bro
 + [x] implementing a fingerprint recognition system
 + [x] implementing a face recognition system
 + [x] handle database for storing biometric data
-+ [ ] implementing an user interface for the given system 
++ [x] implementing an user interface for the given system 
 
 the pysgfplib is a property of SecuGen company and only should be used under their name only
